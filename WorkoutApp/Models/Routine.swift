@@ -1,0 +1,43 @@
+//
+//  Routine.swift
+//  WorkoutApp
+//
+//  Created by Oliver Barta on 2026-07-15.
+//
+
+import SwiftData
+import Foundation
+
+@Model
+class Exercise {
+    var name: String
+    var sets: [Int]
+    var weights: [Int]
+    var type: String
+    var order: Int
+
+    var routine: Routine?
+
+    init(name: String, sets: [Int], weights: [Int], type: String, order: Int = 0) {
+        self.name = name
+        self.sets = sets
+        self.weights = weights
+        self.type = type
+        self.order = order
+    }
+}
+
+@Model
+class Routine {
+    var id: UUID
+    var name: String
+    
+    @Relationship(deleteRule: .cascade, inverse: \Exercise.routine)
+    var exercises: [Exercise]
+
+    init(id: UUID = UUID(), name: String, exercises: [Exercise] = []) {
+        self.id = id
+        self.name = name
+        self.exercises = exercises
+    }
+}
