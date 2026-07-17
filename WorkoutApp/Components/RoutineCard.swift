@@ -12,6 +12,8 @@ struct RoutineCard: View {
     let routine: Routine
     @Environment(\.modelContext) private var modelContext
     
+    @State private var showEditView = false
+    
     var body: some View {
         VStack(spacing: 12) {
             
@@ -28,29 +30,20 @@ struct RoutineCard: View {
                         .foregroundStyle(.red)
                         .symbolRenderingMode(.hierarchical)
                 }
+                .buttonStyle(.plain)
                     
             }
 
 
             VStack(spacing: 12) {
-                ZStack {
-                    NavigationLink("") {
-                        RoutineEditView(routine: routine)
-                    }
-                    .opacity(0)
 
-                    Button {
-                    } label: {
-                        Text("Edit Routine")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .allowsHitTesting(false)
+                Button {
+                    showEditView = true
+                } label: {
+                    Text("Edit Routine")
+                        .frame(maxWidth: .infinity)
                 }
-                
-                
-
-                
+                .buttonStyle(.bordered)
 
                 Button {
                     // wire up later
@@ -67,6 +60,9 @@ struct RoutineCard: View {
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
         .padding(.horizontal)
+        .navigationDestination(isPresented: $showEditView) {
+            RoutineEditView(routine: routine)
+        }
     }
 }
 
