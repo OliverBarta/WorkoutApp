@@ -16,9 +16,11 @@ struct WorkoutView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
-                Text("Workouts")
-                    .headerStyle()
+            
+            Text("Workouts")
+                .headerStyle()
+            
+            ScrollView {
 
                 Button("Add Routine") {
                     let newRoutine = Routine(name: "Routine \(nextRoutineNumber)")
@@ -26,16 +28,15 @@ struct WorkoutView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .padding()
-
-                List (routines, id: \.self) { routine in
+                
+                ForEach(routines) { routine in
                     RoutineCard(routine: routine)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
+                        .padding(.bottom, 15)
                 }
-                .listRowSpacing(24)
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+
             }
         }
     }

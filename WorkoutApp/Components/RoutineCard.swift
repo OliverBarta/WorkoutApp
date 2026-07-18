@@ -16,7 +16,6 @@ struct RoutineCard: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            
             HStack {
                 Text(routine.name)
                     .font(.headline)
@@ -34,9 +33,7 @@ struct RoutineCard: View {
                     
             }
 
-
             VStack(spacing: 12) {
-
                 Button {
                     showEditView = true
                 } label: {

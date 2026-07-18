@@ -20,37 +20,36 @@ struct RoutineEditView: View {
         VStack {
             Text("Edit \(routine.name)")
                 .headerStyle()
-
-            TextField("Routine name", text: $routine.name)
-                .textFieldStyle(.roundedBorder)
-                .padding()
-
-            Button("Add Exercise") {
-                let newExercise = Exercise(
-                    name: "New Exercise",
-                    sets: [10, 10, 10],
-                    weights: [0, 0, 0],
-                    type: "lb",
-                    order: routine.exercises.count
-                )
-                routine.exercises.append(newExercise)
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .padding(.horizontal)
             
             ScrollView {
-                VStack {
-                    ForEach(sortedExercises) { exercise in
-                        ExerciseCard(exercise: exercise)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                    }
+                TextField("Routine name", text: $routine.name)
+                    .textFieldStyle(.roundedBorder)
+                    .padding()
+
+                Button("Add Exercise") {
+                    let newExercise = Exercise(
+                        name: "New Exercise",
+                        sets: [10, 10, 10],
+                        weights: [0, 0, 0],
+                        type: "lb",
+                        order: routine.exercises.count
+                    )
+                    routine.exercises.append(newExercise)
                 }
-                .padding(.top)
+                .buttonStyle(PrimaryButtonStyle())
+                .padding(.horizontal)
+                
+                ForEach(sortedExercises) { exercise in
+                    ExerciseCard(exercise: exercise)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    
+                }
+                .padding(.top, 20)
+                
             }
-            
-            Spacer()
+            .frame(maxHeight: .infinity)
         }
         .navigationTitle("Edit Routine")
     }
