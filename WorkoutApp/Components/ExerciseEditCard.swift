@@ -1,5 +1,5 @@
 //
-//  ExcerciseCard.swift
+//  ExcerciseEditCard.swift
 //  WorkoutApp
 //
 //  Created by Oliver Barta on 2026-07-15.
@@ -29,7 +29,8 @@ struct EditableStat: View {
     }
 }
 
-struct ExerciseCard: View {
+// the exercise card for edit view
+struct ExerciseEditCard: View {
     @Bindable var exercise: Exercise
     @Environment(\.modelContext) private var modelContext
     private let rowHeight: CGFloat = 52
@@ -113,7 +114,7 @@ struct ExerciseCard: View {
 }
 
 #Preview {
-    ExerciseCard(
+    ExerciseEditCard(
         exercise: Exercise(name: "Bench Press", sets: [3,3,3], weights: [10, 10, 10], type: "lb", order: 0)
     )
 }

@@ -40,7 +40,7 @@ struct RoutineEditView: View {
                 .padding(.horizontal)
                 
                 ForEach(sortedExercises) { exercise in
-                    ExerciseCard(exercise: exercise)
+                    ExerciseEditCard(exercise: exercise)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
