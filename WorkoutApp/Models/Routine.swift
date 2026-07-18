@@ -13,15 +13,17 @@ class Exercise {
     var name: String
     var reps: [Int] // sets
     var weights: [Int]
+    var restTime: Int
     var type: String
     var order: Int
 
     var routine: Routine?
 
-    init(name: String, reps: [Int], weights: [Int], type: String, order: Int = 0) {
+    init(name: String, reps: [Int], weights: [Int], restTime: Int, type: String, order: Int = 0) {
         self.name = name
         self.reps = reps
         self.weights = weights
+        self.restTime = restTime
         self.type = type
         self.order = order
     }

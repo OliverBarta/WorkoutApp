@@ -12,6 +12,7 @@ enum Theme {
     static let primary = Color.blue
     static let background = Color(.systemBackground)
     static let cardBackground = Color(.secondarySystemBackground)
+    static let lightGreen = Color(red: 0.6, green: 0.9, blue: 0.6, opacity: 0.7)
 
     // Spacing
     static let padding: CGFloat = 16

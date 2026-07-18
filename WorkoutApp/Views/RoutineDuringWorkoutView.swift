@@ -1,14 +1,14 @@
 //
-//  RoutineEditView.swift
+//  RoutineDuringWorkoutView.swift
 //  WorkoutApp
 //
-//  Created by Oliver Barta on 2026-07-15.
+//  Created by Oliver Barta on 2026-07-17.
 //
 
 import SwiftUI
 import SwiftData
 
-struct RoutineEditView: View {
+struct RoutineDuringWorkoutView: View {
     @Bindable var routine: Routine
 
     private var sortedExercises: [Exercise] {
@@ -17,13 +17,10 @@ struct RoutineEditView: View {
 
     var body: some View {
         VStack {
-            Text("Edit \(routine.name)")
+            Text(routine.name)
                 .headerStyle()
             
             ScrollView {
-                TextField("Routine name", text: $routine.name)
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
 
                 Button("Add Exercise") {
                     let newExercise = Exercise(
@@ -40,7 +37,7 @@ struct RoutineEditView: View {
                 .padding(.horizontal)
                 
                 ForEach(sortedExercises) { exercise in
-                    ExerciseEditCard(exercise: exercise)
+                    ExerciseDuringWorkoutCard(exercise: exercise)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
@@ -59,5 +56,5 @@ struct RoutineEditView: View {
 }
 
 #Preview {
-    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    RoutineDuringWorkoutView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], restTime: 60, type: "lb")]))
 }

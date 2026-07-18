@@ -8,55 +8,18 @@
 import SwiftUI
 import SwiftData
 
-struct EditableStat: View {
-    @Binding var value: Int
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        TextField("", value: $value, format: .number)
-            .keyboardType(.numberPad)
-            .focused($isFocused)
-            .textFieldStyle(.plain)
-            .fixedSize()
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
-    }
-}
-
-struct EditableTitle: View {
-    @Binding var name: String
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        TextField("Exercise name", text: $name)
-            .focused($isFocused)
-            .fixedSize()
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
-    }
-}
-
 // the exercise card for edit view
-struct ExerciseEditCard: View {
+struct ExerciseDuringWorkoutCard: View {
     @Bindable var exercise: Exercise
     @Environment(\.modelContext) private var modelContext
     private let rowHeight: CGFloat = 60
+    @State private var checkedRows: Set<Int> = []
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                EditableTitle(name: $exercise.name)
+                Text(exercise.name)
                     .font(.headline)
-                    .multilineTextAlignment(.leading)
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -85,29 +48,42 @@ struct ExerciseEditCard: View {
             }
             .padding(.top)
             
-            List {
-                ForEach(Array(exercise.reps.indices), id: \.self) { index in
-                    HStack {
-                        Text("Set \(index + 1)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        EditableStat(value: $exercise.reps[index])
-                        Text("reps")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        EditableStat(value: $exercise.weights[index])
-                        Text(exercise.type)
-                            .foregroundColor(.secondary)
-                    }
-                    .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            exercise.reps.remove(at: index)
-                            exercise.weights.remove(at: index)
-                        } label: {
-                            Image(systemName: "trash")
+            List(Array(exercise.reps.indices), id: \.self) { index in
+                HStack {
+                    Text("Set \(index + 1)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    EditableStat(value: $exercise.reps[index])
+                    Text("reps")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    EditableStat(value: $exercise.weights[index])
+                    Text(exercise.type)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Button {
+                        if checkedRows.contains(index) {
+                            checkedRows.remove(index)
+                        } else {
+                            checkedRows.insert(index)
                         }
+                    } label: {
+                        Image(systemName: "checkmark.square.fill")
+                            .font(.title2)
+                            .foregroundStyle(.green)
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .listRowBackground(checkedRows.contains(index) ? Theme.lightGreen : Color.clear)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        exercise.reps.remove(at: index)
+                        exercise.weights.remove(at: index)
+                    } label: {
+                        Image(systemName: "trash")
                     }
                 }
             }
@@ -139,7 +115,7 @@ struct ExerciseEditCard: View {
 }
 
 #Preview {
-    ExerciseEditCard(
+    ExerciseDuringWorkoutCard(
         exercise: Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
     )
 }
