@@ -29,7 +29,7 @@ struct RoutineEditView: View {
                 Button("Add Exercise") {
                     let newExercise = Exercise(
                         name: "New Exercise",
-                        sets: [10, 10, 10],
+                        reps: [10, 10, 10],
                         weights: [0, 0, 0],
                         type: "lb",
                         order: routine.exercises.count
@@ -56,5 +56,5 @@ struct RoutineEditView: View {
 }
 
 #Preview {
-    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", sets: [3,3,3], weights: [10, 10, 10], type: "lb")]))
+    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], type: "lb")]))
 }

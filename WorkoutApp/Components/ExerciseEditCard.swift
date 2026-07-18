@@ -62,13 +62,13 @@ struct ExerciseEditCard: View {
             }
 
             List {
-                ForEach(Array(exercise.sets.indices), id: \.self) { index in
+                ForEach(Array(exercise.reps.indices), id: \.self) { index in
                     HStack {
                         Text("Set \(index + 1)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
-                        EditableStat(value: $exercise.sets[index])
+                        EditableStat(value: $exercise.reps[index])
                         Text("reps")
                             .foregroundColor(.secondary)
                         Spacer()
@@ -81,7 +81,7 @@ struct ExerciseEditCard: View {
                     .listRowInsets(EdgeInsets())
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
-                            exercise.sets.remove(at: index)
+                            exercise.reps.remove(at: index)
                             exercise.weights.remove(at: index)
                         } label: {
                             Image(systemName: "trash")
@@ -92,14 +92,14 @@ struct ExerciseEditCard: View {
             .listStyle(.plain)
             .scrollDisabled(true)
             .scrollContentBackground(.hidden)
-            .frame(height: CGFloat(exercise.sets.count) * rowHeight)
+            .frame(height: CGFloat(exercise.reps.count) * rowHeight)
 
             Button("Add set") {
-                if let lastSetReps = exercise.sets.last, let lastWeight = exercise.weights.last {
-                    exercise.sets.append(lastSetReps)
+                if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
+                    exercise.reps.append(lastSetReps)
                     exercise.weights.append(lastWeight)
                 } else {
-                    exercise.sets.append(0)
+                    exercise.reps.append(0)
                     exercise.weights.append(0)
                 }
             }
@@ -115,6 +115,6 @@ struct ExerciseEditCard: View {
 
 #Preview {
     ExerciseEditCard(
-        exercise: Exercise(name: "Bench Press", sets: [3,3,3], weights: [10, 10, 10], type: "lb", order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], type: "lb", order: 0)
     )
 }

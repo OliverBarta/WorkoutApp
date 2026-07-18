@@ -11,16 +11,16 @@ import Foundation
 @Model
 class Exercise {
     var name: String
-    var sets: [Int]
+    var reps: [Int] // sets
     var weights: [Int]
     var type: String
     var order: Int
 
     var routine: Routine?
 
-    init(name: String, sets: [Int], weights: [Int], type: String, order: Int = 0) {
+    init(name: String, reps: [Int], weights: [Int], type: String, order: Int = 0) {
         self.name = name
-        self.sets = sets
+        self.reps = reps
         self.weights = weights
         self.type = type
         self.order = order

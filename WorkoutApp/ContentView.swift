@@ -18,7 +18,11 @@ struct ContentView: View {
 
             WorkoutView()
                 .tabItem {
-                    Label("Workout", systemImage: "figure.run")
+                    Label("Workout", systemImage: "dumbbell.fill")
+                }
+            RunningView()
+                .tabItem {
+                    Label("Running", systemImage: "figure.run")
                 }
 
             ProfileView()
