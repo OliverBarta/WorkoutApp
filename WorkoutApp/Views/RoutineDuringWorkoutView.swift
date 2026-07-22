@@ -117,6 +117,17 @@ struct RoutineDuringWorkoutView: View {
             }
             
             Button ("Keep original routine") {
+                
+                // add save to history functionality
+                
+                if let originalRoutine = workoutSession.originalRoutine {
+                    routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+                }
+                
+                workoutSession.end()
+                dismiss()
+            }
+            Button ("End workout without saving") {
                 if let originalRoutine = workoutSession.originalRoutine {
                     routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
                 }
