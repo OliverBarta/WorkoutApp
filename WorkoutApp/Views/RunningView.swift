@@ -12,7 +12,7 @@ struct RunningView: View {
         VStack {
             Text("RunningView")
                 .headerStyle()
-            Text("test")
+            Text("Coming soon")
             Spacer()
         }
     }

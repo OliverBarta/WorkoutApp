@@ -9,10 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct RoutineCard: View {
-    let routine: Routine
+    @Bindable var routine: Routine
     @Environment(\.modelContext) private var modelContext
+    @Environment(WorkoutSession.self) private var workoutSession
     
     @State private var showEditView = false
+    @State private var showDoneDialog = false
     
     var body: some View {
         VStack(spacing: 12) {
@@ -22,9 +24,9 @@ struct RoutineCard: View {
                 Spacer()
                 
                 Button {
-                    modelContext.delete(routine)
+                    showDoneDialog = true
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: "trash")
                         .font(.title2)
                         .foregroundStyle(.red)
                         .symbolRenderingMode(.hierarchical)
@@ -43,7 +45,8 @@ struct RoutineCard: View {
                 .buttonStyle(.bordered)
 
                 Button {
-                    // wire up later
+                    workoutSession.start(routine)
+                    
                 } label: {
                     Text("Start Routine")
                         .frame(maxWidth: .infinity)
@@ -60,9 +63,21 @@ struct RoutineCard: View {
         .navigationDestination(isPresented: $showEditView) {
             RoutineEditView(routine: routine)
         }
+        .confirmationDialog("Delete \(routine.name)?", isPresented: $showDoneDialog, titleVisibility: .visible) {
+            Button ("Delete") {
+                modelContext.delete(routine)
+            }
+            .background(Color.red)
+            
+            Button ("Keep") {
+                showDoneDialog = false
+            }
+            .background(Color.primary)
+        }
     }
 }
 
 #Preview {
     RoutineCard(routine: Routine(name: "Routine 1"))
+        .environment(WorkoutSession())
 }

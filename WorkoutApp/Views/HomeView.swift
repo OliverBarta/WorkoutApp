@@ -10,10 +10,22 @@ import SwiftUI
 struct HomeView: View {
     var body: some View {
         VStack {
-            Text("Home")
-                .headerStyle()
-            Text("test")
-            Spacer()
+            ScrollView {
+                Text("See you and the people you follow's workout and run history here. Coming soon.")
+                    .padding(.top, 45)
+                    .padding(.horizontal)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .overlay {
+                VStack {
+                    Text("Home")
+                        .headerStyle()
+                    
+                    Spacer()
+                }
+            }
+            
         }
     }
 }

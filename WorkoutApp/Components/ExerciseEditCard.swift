@@ -8,42 +8,6 @@
 import SwiftUI
 import SwiftData
 
-struct EditableStat: View {
-    @Binding var value: Int
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        TextField("", value: $value, format: .number)
-            .keyboardType(.numberPad)
-            .focused($isFocused)
-            .textFieldStyle(.plain)
-            .fixedSize()
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
-    }
-}
-
-struct EditableTitle: View {
-    @Binding var name: String
-    @FocusState private var isFocused: Bool
-
-    var body: some View {
-        TextField("Exercise name", text: $name)
-            .focused($isFocused)
-            .fixedSize()
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
-            .animation(.easeInOut(duration: 0.15), value: isFocused)
-    }
-}
 
 // the exercise card for edit view
 struct ExerciseEditCard: View {
@@ -80,10 +44,11 @@ struct ExerciseEditCard: View {
             }
             HStack {
                 EditableStat(value: $exercise.restTime)
+                    .foregroundColor(.secondary)
+                    
                 Text("second rest timer")
                     .foregroundColor(.secondary)
             }
-            .padding(.top)
             
             List {
                 ForEach(Array(exercise.reps.indices), id: \.self) { index in
@@ -115,7 +80,7 @@ struct ExerciseEditCard: View {
             .scrollDisabled(true)
             .scrollContentBackground(.hidden)
             .listRowSpacing(0)
-            .cornerRadius(12)
+            .padding(.horizontal, -16)
             .frame(height: CGFloat(exercise.reps.count) * rowHeight)
 
             Button("Add set") {
@@ -134,12 +99,11 @@ struct ExerciseEditCard: View {
         .frame(maxWidth: .infinity)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal)
     }
 }
 
 #Preview {
     ExerciseEditCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
     )
 }

@@ -11,14 +11,9 @@ struct HeaderStyle: ViewModifier {
         content
             .font(.title2)
             .fontWeight(.bold)
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, 8)
-            .overlay(
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(.gray),
-                alignment: .bottom
-            )
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .glassEffect(in: Capsule())
     }
 }
 

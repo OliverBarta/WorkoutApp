@@ -16,7 +16,7 @@ struct RoutineEditView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             Text("Edit \(routine.name)")
                 .headerStyle()
             
@@ -28,8 +28,9 @@ struct RoutineEditView: View {
                 Button("Add Exercise") {
                     let newExercise = Exercise(
                         name: "New Exercise",
-                        reps: [10, 10, 10],
-                        weights: [0, 0, 0],
+                        reps: [8],
+                        completedSets: [],
+                        weights: [0],
                         restTime: 60,
                         type: "lb",
                         order: routine.exercises.count
@@ -59,5 +60,5 @@ struct RoutineEditView: View {
 }
 
 #Preview {
-    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
 }

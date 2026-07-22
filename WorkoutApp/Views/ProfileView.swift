@@ -10,10 +10,22 @@ import SwiftUI
 struct ProfileView: View {
     var body: some View {
         VStack {
-            Text("Profile")
-                .headerStyle()
-            Text("test")
-            Spacer()
+            ScrollView {
+                Text("test")
+                    .padding(.top, 45)
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .overlay {
+                VStack {
+                    Text("Profile")
+                        .headerStyle()
+                    Spacer()
+                }
+            }
+            
+            
         }
     }
 }

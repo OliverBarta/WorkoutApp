@@ -8,10 +8,50 @@
 import SwiftData
 import Foundation
 
+
+extension Exercise {
+    func copy() -> Exercise {
+        Exercise(
+            name: name,
+            reps: reps,
+            completedSets: completedSets,
+            weights: weights,
+            restTime: restTime,
+            type: type,
+            order: order
+        )
+    }
+}
+
+// copies but sets the completed sets to zero. So when you update the routine it updates everything but resets the completedSets.
+extension Exercise {
+    func copyCompletedSetsToZero() -> Exercise {
+        Exercise(
+            name: name,
+            reps: reps,
+            completedSets: [],
+            weights: weights,
+            restTime: restTime,
+            type: type,
+            order: order
+        )
+    }
+}
+
+extension Routine {
+    func copy() -> Routine {
+        Routine(
+            name: name,
+            exercises: exercises.map { $0.copy() }
+        )
+    }
+}
+
 @Model
 class Exercise {
     var name: String
     var reps: [Int] // sets
+    var completedSets: Set<Int>
     var weights: [Int]
     var restTime: Int
     var type: String
@@ -19,9 +59,10 @@ class Exercise {
 
     var routine: Routine?
 
-    init(name: String, reps: [Int], weights: [Int], restTime: Int, type: String, order: Int = 0) {
+    init(name: String, reps: [Int], completedSets: Set<Int>, weights: [Int], restTime: Int, type: String, order: Int = 0) {
         self.name = name
         self.reps = reps
+        self.completedSets = completedSets
         self.weights = weights
         self.restTime = restTime
         self.type = type

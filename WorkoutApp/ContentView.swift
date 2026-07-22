@@ -9,26 +9,47 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @Environment(WorkoutSession.self) private var workoutSession
+    
     var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
+        
+        @Bindable var workoutSession = workoutSession
+        
+        ZStack(alignment: .bottom) {
+            TabView {
+                HomeView()
+                    .tabItem {
+                        Label("Home", systemImage: "house.fill")
+                    }
+                
+                WorkoutView()
+                    .tabItem {
+                        Label("Workout", systemImage: "dumbbell.fill")
+                    }
+                RunningView()
+                    .tabItem {
+                        Label("Running", systemImage: "figure.run")
+                    }
+                
+                ProfileView()
+                    .tabItem {
+                        Label("Profile", systemImage: "person.fill")
+                    }
+            }
+            if workoutSession.isActive {
+                CurrentActivityIndicatorCard()
+                .frame(height: 60)
+                .padding(.bottom, 60)
+            }
+            
+        }
+        .fullScreenCover(isPresented: $workoutSession.showActiveWorkout) {
+            if let originalRoutine = workoutSession.originalRoutine {
+                ZStack {
+                    RoutineDuringWorkoutView(routine: originalRoutine)
                 }
-
-            WorkoutView()
-                .tabItem {
-                    Label("Workout", systemImage: "dumbbell.fill")
-                }
-            RunningView()
-                .tabItem {
-                    Label("Running", systemImage: "figure.run")
-                }
-
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
+                .environment(workoutSession)
+            }
         }
     }
 }
@@ -36,4 +57,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: Routine.self, inMemory: true)
+        .environment(WorkoutSession())
 }

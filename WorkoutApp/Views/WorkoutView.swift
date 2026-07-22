@@ -16,10 +16,6 @@ struct WorkoutView: View {
 
     var body: some View {
         NavigationStack {
-            
-            Text("Workouts")
-                .headerStyle()
-            
             ScrollView {
 
                 Button("Add Routine") {
@@ -28,6 +24,7 @@ struct WorkoutView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .padding()
+                .padding(.top, 35)
                 
                 ForEach(routines) { routine in
                     RoutineCard(routine: routine)
@@ -37,6 +34,13 @@ struct WorkoutView: View {
                         .padding(.bottom, 15)
                 }
 
+            }
+            .overlay {
+                VStack {
+                    Text("Workouts")
+                        .headerStyle()
+                    Spacer()
+                }
             }
         }
     }
