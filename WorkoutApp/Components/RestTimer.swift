@@ -1,20 +1,26 @@
 //
-//  CurrentActivityIndicatorCard.swift
+//  RestTimer.swift
 //  WorkoutApp
 //
-//  Created by Oliver Barta on 2026-07-19.
+//  Created by Oliver Barta on 2026-07-22.
 //
+
 
 import SwiftUI
 import SwiftData
 
-struct CurrentActivityIndicatorCard: View {
+struct RestTimer: View {
     @Environment(WorkoutSession.self) private var workoutSession
     
+    @State private var now = Date()
+    @State private var tickTimer: Timer?
+    
     var body: some View {
-        if let workoutRoutine = workoutSession.workoutRoutine {
+        if let restTimerStartDate = workoutSession.restTimerStartDate,
+           let exerciseBeingTimed = workoutSession.exerciseBeingTimed {
             GeometryReader { geometry in
-                let barWidth = (geometry.size.width - 32) * workoutSession.getCompletedSetsPercentage()
+                
+                let barWidth = (geometry.size.width - 32) * workoutSession.getCompletedRestTimePercentage()
                 
                 Button {
                     workoutSession.showActiveWorkout = true
@@ -27,23 +33,25 @@ struct CurrentActivityIndicatorCard: View {
                             topTrailingRadius: 30
                         )
                         .fill(Theme.progressBar)
-                        .frame(width: geometry.size.width - 32, height: 60)
-                        .mask(
+                        .frame(width: geometry.size.width - 32)
+                        .mask (
                             Rectangle()
                                 .frame(width: barWidth)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .animation(.smooth(duration: 0.25), value: workoutSession.getCompletedRestTimePercentage())
                         )
                         
+                        
                         // Layer 1: oppositeBackground version, visible everywhere the bar isn't
-                        contentRow(routineName: workoutRoutine.name, textColor: Theme.oppositeBackground)
+                        contentRow(textColor: Theme.oppositeBackground, startDate: restTimerStartDate, exercise: exerciseBeingTimed)
                             .mask(
                                 Rectangle()
                                     .frame(maxWidth: .infinity, alignment: .trailing)
-                                    .padding(.leading, barWidth)
+                                    .padding(.leading, barWidth) // masks out (hides) everything left of the bar's edge
                             )
                         
                         // Layer 2: background version, visible only where the bar is covering
-                        contentRow(routineName: workoutRoutine.name, textColor: Color.white)
+                        contentRow(textColor: Color.white, startDate: restTimerStartDate, exercise: exerciseBeingTimed)
                             .mask(
                                 Rectangle()
                                     .frame(width: barWidth, alignment: .leading)
@@ -55,28 +63,40 @@ struct CurrentActivityIndicatorCard: View {
                 .padding(.horizontal)
             }
             .frame(height: 60)
+            .onAppear {
+                tickTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                    now = Date()
+                }
+            }
+            .onDisappear {
+                tickTimer?.invalidate()
+                tickTimer = nil
+            }
         }
     }
     
     // this function creates a layer of all the content. so I use it to make 2 layers and mask them by the progress bar
     @ViewBuilder
-    private func contentRow(routineName: String, textColor: Color) -> some View {
+    private func contentRow(textColor: Color, startDate: Date, exercise: Exercise) -> some View {
+        
         HStack {
-            Text(routineName)
+            Text("Rest time")
                 .foregroundColor(textColor)
                 .padding(5)
                 .padding(.horizontal)
                 .fontWeight(.bold)
             Spacer()
             
-            WorkoutTimer()
+            let remainingTime = max(0, exercise.restTime - Int(now.timeIntervalSince(startDate)))
+            
+            Text(SecondsFormatted(seconds: remainingTime))
                 .foregroundColor(textColor)
                 .fontWeight(.bold)
             
             Button(role: .destructive) {
-                workoutSession.end()
+                workoutSession.stopRestTimer()
             } label: {
-                Image(systemName: "trash")
+                Image(systemName: "forward.end")
                     .foregroundColor(textColor == Color.white ? Color.white : Color.red)
             }
             .padding(.horizontal)
@@ -90,8 +110,10 @@ struct CurrentActivityIndicatorCard: View {
 
 #Preview {
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3,3,3,3], completedSets: [1,2,3,4,5,6,7,8,9,10], weights: [3,3,3,3,3,3,3,3,3,3,3], restTime: 60, type: "lb")]))
+    let exercise = Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, type: "lb")
+    session.start(Routine(name: "Routine 1", exercises: [exercise]))
+    session.startRestTimer(exercise)
 
-    return CurrentActivityIndicatorCard()
+    return RestTimer()
         .environment(session)
 }

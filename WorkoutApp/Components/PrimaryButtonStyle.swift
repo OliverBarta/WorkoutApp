@@ -12,7 +12,7 @@ struct PrimaryButtonStyle: ButtonStyle {
         configuration.label
             .foregroundColor(.white)
             .padding()
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: 50)
             .background(Theme.primary)
             .cornerRadius(12)
             .opacity(configuration.isPressed ? 0.7 : 1.0) // dims slightly when tapped

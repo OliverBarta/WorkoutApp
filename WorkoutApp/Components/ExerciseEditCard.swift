@@ -70,9 +70,8 @@ struct ExerciseEditCard: View {
                         Button(role: .destructive) {
                             exercise.reps.remove(at: index)
                             exercise.weights.remove(at: index)
-                        } label: {
-                            Image(systemName: "trash")
                         }
+                        .labelStyle(.titleOnly)
                     }
                 }
             }
@@ -83,7 +82,7 @@ struct ExerciseEditCard: View {
             .padding(.horizontal, -16)
             .frame(height: CGFloat(exercise.reps.count) * rowHeight)
 
-            Button("Add set") {
+            Button {
                 if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
                     exercise.reps.append(lastSetReps)
                     exercise.weights.append(lastWeight)
@@ -91,14 +90,14 @@ struct ExerciseEditCard: View {
                     exercise.reps.append(0)
                     exercise.weights.append(0)
                 }
+            } label : {
+                Text("Add set")
+                Image(systemName: "plus")
             }
-            .buttonStyle(PrimaryButtonStyle())
             .padding(.top)
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
     }
 }
 

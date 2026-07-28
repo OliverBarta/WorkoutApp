@@ -10,6 +10,10 @@ import SwiftData
 
 struct RoutineEditView: View {
     @Bindable var routine: Routine
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var showExerciseSearch = false
 
     private var sortedExercises: [Exercise] {
         routine.exercises.sorted { $0.order < $1.order }
@@ -17,28 +21,45 @@ struct RoutineEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Edit \(routine.name)")
-                .headerStyle()
-            
             ScrollView {
+                // rectangle bumps the rest of the scroll bar down so its under the tool bar (tool bar = overlay)
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 30)
+                
                 TextField("Routine name", text: $routine.name)
                     .textFieldStyle(.roundedBorder)
                     .padding()
-
-                Button("Add Exercise") {
-                    let newExercise = Exercise(
-                        name: "New Exercise",
-                        reps: [8],
-                        completedSets: [],
-                        weights: [0],
-                        restTime: 60,
-                        type: "lb",
-                        order: routine.exercises.count
-                    )
-                    routine.exercises.append(newExercise)
+                HStack {
+                    Button {
+                        showExerciseSearch = true
+                    } label : {
+                        Text("Exercise")
+                        Image(systemName: "plus")
+                    }
+                    .padding(.horizontal)
+                    .buttonStyle(.borderedProminent)
+                    
+                    Spacer()
+                    
+                    Button {
+                        let newExercise = Exercise(
+                            name: "New Exercise",
+                            reps: [8],
+                            completedSets: [],
+                            weights: [0],
+                            restTime: 60,
+                            type: "lb",
+                            order: routine.exercises.count
+                        )
+                        routine.exercises.append(newExercise)
+                    } label : {
+                       Text("Custom Exercise")
+                       Image(systemName: "plus")
+                    }
+                    .padding(.horizontal)
+                    
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding(.horizontal)
                 
                 ForEach(sortedExercises) { exercise in
                     ExerciseEditCard(exercise: exercise)
@@ -47,7 +68,7 @@ struct RoutineEditView: View {
                         .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     
                 }
-                .padding(.top, 20)
+                .padding(.top, 10)
                 
             }
             .frame(maxHeight: .infinity)
@@ -55,7 +76,33 @@ struct RoutineEditView: View {
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
-        .navigationTitle("Edit Routine")
+        .overlay {
+            VStack {
+                ZStack {
+                    Text("Edit \(routine.name)")
+                        .headerStyle()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.backward")
+                        }
+                        .buttonStyle(.glass)
+                        .foregroundColor(Theme.oppositeBackground)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                    }
+                    .padding(.horizontal)
+                    
+                }
+                Spacer()
+            }
+        }
+        .sheet(isPresented: $showExerciseSearch) {
+            ExerciseSearchView(routine: routine)
+        }
     }
 }
 

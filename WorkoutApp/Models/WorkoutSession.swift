@@ -12,7 +12,8 @@ import Observation
 class WorkoutSession {
     // if you change the routine during the workout your changing this variable
     var workoutRoutine: Routine?
-    // the unedited routine. 
+    
+    // the unedited routine.
     var originalRoutine: Routine?
     
     var showActiveWorkout: Bool = false
@@ -69,5 +70,19 @@ class WorkoutSession {
         let completedSets = exercises.reduce(0) { $0 + $1.completedSets.count }
         
         return CGFloat(completedSets) / CGFloat(totalSets)
+    }
+    
+    func getCompletedRestTimePercentage() -> CGFloat {
+        guard let restStart = restTimerStartDate,
+              let totalRestTime = exerciseBeingTimed?.restTime,
+              totalRestTime > 0
+        else {
+            return 0.0
+        }
+        
+        let timePassed = Date().timeIntervalSince(restStart)
+        let percentage = CGFloat(timePassed) / CGFloat(totalRestTime)
+        
+        return min(max(percentage, 0.0), 1.0)
     }
 }

@@ -18,13 +18,17 @@ struct WorkoutView: View {
         NavigationStack {
             ScrollView {
 
-                Button("Add Routine") {
+                Button {
                     let newRoutine = Routine(name: "Routine \(nextRoutineNumber)")
                     modelContext.insert(newRoutine)
+                } label : {
+                    Text("Routine")
+                    Image(systemName: "plus")
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding()
-                .padding(.top, 35)
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 50)
+                .padding(.horizontal)
                 
                 ForEach(routines) { routine in
                     RoutineCard(routine: routine)
@@ -35,6 +39,7 @@ struct WorkoutView: View {
                 }
 
             }
+            .frame(maxWidth: .infinity)
             .overlay {
                 VStack {
                     Text("Workouts")
@@ -48,5 +53,6 @@ struct WorkoutView: View {
 
 #Preview {
     WorkoutView()
-        .modelContainer(for: Routine.self, inMemory: true)
+            .modelContainer(for: Routine.self, inMemory: true)
+            .environment(WorkoutSession())
 }

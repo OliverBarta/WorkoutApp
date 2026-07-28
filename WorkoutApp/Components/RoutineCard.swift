@@ -57,22 +57,37 @@ struct RoutineCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
-        .padding(.horizontal)
-        .navigationDestination(isPresented: $showEditView) {
+        .fullScreenCover(isPresented: $showEditView) {
             RoutineEditView(routine: routine)
         }
-        .confirmationDialog("Delete \(routine.name)?", isPresented: $showDoneDialog, titleVisibility: .visible) {
-            Button ("Delete") {
-                modelContext.delete(routine)
+        .sheet(isPresented: $showDoneDialog) {
+            VStack(spacing: 16) {
+                Text("Delete \"\(routine.name)?\"")
+                    .font(.headline)
+                
+                Button {
+                    modelContext.delete(routine)
+                } label: {
+                    Text("Delete")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Color.red)
+                .cornerRadius(12)
+                
+                Button {
+                    showDoneDialog = false
+                } label: {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Theme.grey)
+                .cornerRadius(12)
             }
-            .background(Color.red)
+            .padding()
+            .presentationDetents([.height(180)])
             
-            Button ("Keep") {
-                showDoneDialog = false
-            }
-            .background(Color.primary)
         }
     }
 }

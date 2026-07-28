@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// the timer at the top of a workout session counting the total time a workout has lasted
 struct WorkoutTimer: View {
     
     @Environment(WorkoutSession.self) private var workoutSession

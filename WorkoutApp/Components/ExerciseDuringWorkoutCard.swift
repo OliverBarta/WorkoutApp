@@ -13,7 +13,7 @@ struct ExerciseDuringWorkoutCard: View {
     @Bindable var exercise: Exercise
     @Environment(WorkoutSession.self) private var workoutSession
     @Environment(\.modelContext) private var modelContext
-    let rowHeightValue: CGFloat = 62
+    let rowHeightValue: CGFloat = 61
     
     var body: some View {
         VStack(spacing: 0) {
@@ -80,15 +80,15 @@ struct ExerciseDuringWorkoutCard: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .listRowBackground(exercise.completedSets.contains(index) ? Theme.progressBarBackground : Color.clear)
+                .listRowBackground(exercise.completedSets.contains(index) ? Theme.checkedSetGreen : Color.clear)
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
                         exercise.reps.remove(at: index)
                         exercise.weights.remove(at: index)
                         
-                    } label: {
-                        Image(systemName: "trash")
                     }
+                    .labelStyle(.titleOnly)
+                    
                 }
             }
             .listStyle(.plain)
@@ -99,45 +99,7 @@ struct ExerciseDuringWorkoutCard: View {
             .padding(.top, 8)
             .frame(height: rowHeightValue * CGFloat(exercise.reps.count))
             
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                GeometryReader { geometry in
-                    ZStack {
-                        ZStack (alignment: .leading) {
-                            Rectangle()
-                                .fill(Theme.progressBarBackground)
-                                .frame(width: geometry.size.width ,height: 18)
-                            if let restStart = workoutSession.restTimerStartDate,
-                               Date().timeIntervalSince(restStart) < Double(exercise.restTime) && workoutSession.exerciseBeingTimed == exercise {
-                                let elapsed = Date().timeIntervalSince(restStart)
-                                let remainingFraction = max(0, 1 - (elapsed / Double(exercise.restTime)))
-                                
-                                Rectangle()
-                                    .fill(Theme.progressBar)
-                                    .frame(width: geometry.size.width * remainingFraction, height: 18)
-                                    .animation(.smooth(duration: 0.25), value: remainingFraction)
-                            }
-                        }
-                        .overlay {
-                            if let restStart = workoutSession.restTimerStartDate,
-                               Date().timeIntervalSince(restStart) < Double(exercise.restTime) && workoutSession.exerciseBeingTimed == exercise {
-                                GeneralCountDownTimer(countDownFrom: exercise.restTime)
-                                    .font(.system(size: 18))
-                                    .id(restStart)// makes the timer reset every new check
-                                
-                            } else {
-                                FrozenTimeDisplay(displayTimeSeconds: exercise.restTime)
-                                    .font(.system(size: 18))
-                            }
-                        }
-                        
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: 20)
-            }
-            .padding(.top, 18)
-            .padding(.horizontal, -16)
-            
-            Button("Add set") {
+            Button {
                 if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
                     exercise.reps.append(lastSetReps)
                     exercise.weights.append(lastWeight)
@@ -145,14 +107,14 @@ struct ExerciseDuringWorkoutCard: View {
                     exercise.reps.append(0)
                     exercise.weights.append(0)
                 }
+            } label : {
+                Text("Add set")
+                Image(systemName: "plus")
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .padding(.top, 25)
+            .padding(.top, 10)
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
     }
 }
 

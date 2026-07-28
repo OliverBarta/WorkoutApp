@@ -17,6 +17,6 @@ struct WorkoutAppApp: App {
             ContentView()
                 .environment(workoutSession)
         }
-        .modelContainer(for: Routine.self)
+        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self])
     }
 }

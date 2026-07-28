@@ -13,11 +13,19 @@ struct RoutineDuringWorkoutView: View {
     
     @Environment(WorkoutSession.self) private var workoutSession
     
+    @Environment(\.modelContext) private var modelContext
+    
     private var sortedExercises: [Exercise] {
         workoutSession.workoutRoutine?.exercises.sorted { $0.order < $1.order } ?? []
     }
     
     @State private var showDoneDialog = false
+    @State private var showingAddExerciseAlert = false
+    @State private var newExerciseName = ""
+    @State private var showExerciseSearch = false
+    @State private var showEndWorkoutVerifactionWindow = false
+    
+    
     @Environment(\.dismiss) private var dismiss
     
     var percentSetsDone: CGFloat = 0.1
@@ -25,116 +33,266 @@ struct RoutineDuringWorkoutView: View {
     var body: some View {
         VStack(spacing: 0) {
             
-            VStack {
-                HStack {
-                    Button("Hide") {
-                        workoutSession.showActiveWorkout = false
-                    }
-                    .buttonStyle(.glass)
-                    .frame(alignment: .leading)
-                    .padding()
-                    .padding(.bottom)
-                    
-                    Text(routine.name)
-                        .headerStyle()
-                        .padding(.bottom)
-                    
-                    Button("Done") {
-                        showDoneDialog = true
-                    }
-                    .buttonStyle(.glass)
-                    .frame(alignment: .trailing)
-                    .padding()
-                    .padding(.bottom)
-                }
-            }
-            .padding(.top, -15)
             
-            GeometryReader { geometry in
-                ZStack (alignment: .leading) {
-                    Rectangle()
-                        .fill(Theme.progressBarBackground)
-                    
-                    Rectangle()
-                        .fill(Theme.progressBar)
-                        .frame(width: geometry.size.width * workoutSession.getCompletedSetsPercentage())
-                        .animation(.smooth(duration: 0.25), value: workoutSession.getCompletedSetsPercentage())
-                    
-                    WorkoutTimer()
-                        .foregroundColor(Theme.oppositeBackground)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading)
-                    
-                    WorkoutTimer()
-                        .foregroundColor(Theme.background)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading)
-                        .mask (
-                            Rectangle()
-                                .frame(width: geometry.size.width * workoutSession.getCompletedSetsPercentage())
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        )
-                }
-            }
-            .padding(.top, -15)
-            .frame(height: 30)
             
             ScrollView {
-
-                Button("Add Exercise") {
-                    guard let workoutRoutine = workoutSession.workoutRoutine else { return }
-                    let newExercise = Exercise(
-                        name: "New Exercise",
-                        reps: [8],
-                        completedSets: [],
-                        weights: [0],
-                        restTime: 60,
-                        type: "lb",
-                        order: workoutRoutine.exercises.count
-                    )
-                    workoutRoutine.exercises.append(newExercise)
+                VStack (spacing: 16) {
+                    HStack {
+                        Button {
+                            showExerciseSearch = true
+                        } label : {
+                            Text("Exercise")
+                            Image(systemName: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.horizontal)
+                        
+                        Spacer()
+                        
+                        Button {
+                            showingAddExerciseAlert = true
+                        } label : {
+                            Text("Custom Exercise")
+                            Image(systemName: "plus")
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.top, 125)
+                    
+                    ForEach(sortedExercises) { exercise in
+                        ExerciseDuringWorkoutCard(exercise: exercise)
+                    }
+                    
+                    Button(role: .destructive) {
+                        showEndWorkoutVerifactionWindow = true
+                    } label : {
+                        Text("End workout without logging")
+                        Image(systemName: "trash")
+                    }
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding(.horizontal)
-                .padding(.top, 12)
+                .padding(.bottom, 100)
                 
-                ForEach(sortedExercises) { exercise in
-                    ExerciseDuringWorkoutCard(exercise: exercise)
-                }
-                .padding(.top, 5)
             }
             .frame(maxHeight: .infinity)
+            .overlay {
+                // this overlay houses the back button finish button title (Routine 1) and both progress bars
+                VStack {
+                    VStack {
+                        ZStack {
+                            HStack {
+                                Button {
+                                    workoutSession.showActiveWorkout = false
+                                } label: {
+                                    Image(systemName: "chevron.backward")
+                                }
+                                .buttonStyle(.glass)
+                                .foregroundColor(Theme.oppositeBackground)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Button("Finish") {
+                                    showDoneDialog = true
+                                }
+                                .buttonStyle(.glass)
+                                .foregroundColor(Theme.oppositeBackground)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                                
+                            }
+                            .padding(.horizontal)
+                            
+                            Text(routine.name)
+                                .headerStyle()
+                        }
+                    }
+                    .padding(.bottom, 25)
+                    
+                    GeometryReader { geometry in
+                        Button {
+                            
+                        } label: {
+                            ZStack (alignment: .leading) {
+                                
+                                UnevenRoundedRectangle(
+                                    topLeadingRadius: 30,
+                                    bottomLeadingRadius: 30,
+                                    bottomTrailingRadius: 30,
+                                    topTrailingRadius: 30
+                                )
+                                    .fill(Theme.progressBar)
+                                    .frame(width: geometry.size.width - 32)
+                                    .mask (
+                                        Rectangle()
+                                            .frame(width: geometry.size.width * workoutSession.getCompletedSetsPercentage())
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .animation(.smooth(duration: 0.25), value: workoutSession.getCompletedRestTimePercentage())
+                                    )
+                            
+                                
+                                WorkoutTimer()
+                                    .foregroundColor(Theme.oppositeBackground)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.leading)
+                                
+                                WorkoutTimer()
+                                    .foregroundColor(Color.white)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.leading)
+                                    .mask (
+                                        Rectangle()
+                                            .frame(width: geometry.size.width * workoutSession.getCompletedSetsPercentage())
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    )
+                            }
+                        }
+                        .glassEffect()
+                        .padding(.horizontal)
+                    }
+                    .padding(.top, -15)
+                    .frame(height: 30)
+                    Spacer()
+                }
+                VStack {
+                    Spacer()
+                    RestTimer()
+                        .id("rest-timer")
+                }
+            }
+            
             
         }
-        .confirmationDialog("Update original routine?", isPresented: $showDoneDialog, titleVisibility: .visible) {
-            Button ("Update routine") {
+        .sheet(isPresented: $showExerciseSearch) {
+            if let workoutRoutine = workoutSession.workoutRoutine {
+                ExerciseSearchView(routine: workoutRoutine)
+            }
+        }
+        .sheet(isPresented: $showDoneDialog) {
+            VStack(spacing: 16) {
+                Text("Log and update \"\(routine.name)\"?")
+                    .font(.headline)
                 
-                if let workoutRoutine = workoutSession.workoutRoutine {
-                    routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+                Button {
+                    // saves routine to history and updates the routine
+                    
+                    if let workoutRoutine = workoutSession.workoutRoutine,
+                       let startDate = workoutSession.workoutStartDate {
+                        
+                        let duration = Int(Date().timeIntervalSince(startDate))
+                        
+                        saveRoutineToHistory(workoutRoutine, duration, modelContext)
+                        routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+                    }
+                    
+                    workoutSession.end()
+                    dismiss()
+                } label : {
+                    Text("Log and update")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
                 }
-                workoutSession.end()
-                dismiss()
+                .background(Color.green)
+                .cornerRadius(12)
+                
+                Button {
+                    // saves routine to history
+                    if let originalRoutine = workoutSession.originalRoutine {
+                        routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+                    }
+                    
+                    if let workoutRoutine = workoutSession.workoutRoutine,
+                       let startDate = workoutSession.workoutStartDate {
+                        
+                        let duration = Int(Date().timeIntervalSince(startDate))
+                        
+                        saveRoutineToHistory(workoutRoutine, duration, modelContext)
+                    }
+                    
+                    workoutSession.end()
+                    dismiss()
+                } label : {
+                    Text("Log")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Color.yellow)
+                .cornerRadius(12)
+                
+                Button {
+                    
+                    if let originalRoutine = workoutSession.originalRoutine {
+                        routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+                    }
+                    
+                    workoutSession.end()
+                    dismiss()
+                } label : {
+                    Text("Don't log or update")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Color.red)
+                .cornerRadius(12)
+            }
+            .padding()
+            .presentationDetents([.height(270)])
+        }
+        .alert("Enter a name for your new exercise", isPresented: $showingAddExerciseAlert) {
+            TextField("Exercise Name", text: $newExerciseName)
+            
+            Button("Add") {
+                // Ensure the text isn't empty, otherwise fall back to a default name
+                let trimmedName = newExerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
+                let finalName = trimmedName.isEmpty ? "New Exercise" : trimmedName
+                
+                guard let workoutRoutine = workoutSession.workoutRoutine else { return }
+                
+                let newExercise = Exercise(
+                    name: finalName,
+                    reps: [8],
+                    completedSets: [],
+                    weights: [0],
+                    restTime: 60,
+                    type: "lb",
+                    order: workoutRoutine.exercises.count
+                )
+                
+                workoutRoutine.exercises.append(newExercise)
+                
+                // Reset the text field for the next time it opens
+                newExerciseName = ""
             }
             
-            Button ("Keep original routine") {
-                
-                // add save to history functionality
-                
-                if let originalRoutine = workoutSession.originalRoutine {
-                    routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
-                }
-                
-                workoutSession.end()
-                dismiss()
+            Button("Cancel", role: .cancel) {
+                newExerciseName = ""
             }
-            Button ("End workout without saving") {
-                if let originalRoutine = workoutSession.originalRoutine {
-                    routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
-                }
+        }
+        .sheet(isPresented: $showEndWorkoutVerifactionWindow) {
+            VStack(spacing: 16) {
+                Text("End workout without logging?")
+                    .font(.headline)
                 
-                workoutSession.end()
-                dismiss()
+                Button {
+                    workoutSession.end()
+                    dismiss()
+                } label: {
+                    Text("End")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Color.red)
+                .cornerRadius(12)
+                
+                Button {
+                    showEndWorkoutVerifactionWindow = false
+                } label: {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Theme.grey)
+                .cornerRadius(12)
             }
+            .padding()
+            .presentationDetents([.height(180)])
+            
         }
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

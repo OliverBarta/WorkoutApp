@@ -41,7 +41,6 @@ struct ContentView: View {
                 .frame(height: 60)
                 .padding(.bottom, 60)
             }
-            
         }
         .fullScreenCover(isPresented: $workoutSession.showActiveWorkout) {
             if let originalRoutine = workoutSession.originalRoutine {
@@ -56,6 +55,6 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Routine.self, inMemory: true)
+        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self], inMemory: true)
         .environment(WorkoutSession())
 }
