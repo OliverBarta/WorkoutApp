@@ -45,7 +45,7 @@ struct ExerciseSearchView: View {
                             .font(.headline)
                             .foregroundColor(Theme.oppositeBackground)
 
-                        Text(exercise.primaryMuscles.joined(separator: ", ").capitalized)
+                        Text((exercise.primaryMuscles + exercise.secondaryMuscles).joined(separator: ", ").capitalized)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
