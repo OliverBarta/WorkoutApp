@@ -8,15 +8,11 @@
 import SwiftData
 import Foundation
 
-@Model
-class ExerciseTemplate {
+
+
+struct ExerciseTemplate: Decodable, Identifiable, Hashable { // Should be decodable as we are converting a JSON file into instances of this struct
+    var id: String
     var name: String
-    var muscleGroup: String
-    var imageName: String
-    
-    init(name: String, muscleGroup: String, imageName: String) {
-        self.name = name
-        self.muscleGroup = muscleGroup
-        self.imageName = imageName
-    }
+    var primaryMuscles: [String]
+    var secondaryMuscles: [String]
 }
