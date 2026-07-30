@@ -13,6 +13,8 @@ struct RoutineEditView: View {
     
     @Environment(\.dismiss) private var dismiss
     
+    @State private var keyboardObserver = KeyboardObserver()
+    
     @State private var showExerciseSearch = false
 
     private var sortedExercises: [Exercise] {
@@ -98,6 +100,20 @@ struct RoutineEditView: View {
                     
                 }
                 Spacer()
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if keyboardObserver.isVisible {
+                HStack {
+                    Spacer()
+                    Button {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    } label: {
+                        Image(systemName: "keyboard.chevron.compact.down")
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                }
             }
         }
         .sheet(isPresented: $showExerciseSearch) {

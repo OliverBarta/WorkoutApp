@@ -44,7 +44,7 @@ struct ContentView: View {
         }
         .fullScreenCover(isPresented: $workoutSession.showActiveWorkout) {
             if let originalRoutine = workoutSession.originalRoutine {
-                ZStack {
+                NavigationStack {
                     RoutineDuringWorkoutView(routine: originalRoutine)
                 }
                 .environment(workoutSession)

@@ -15,16 +15,17 @@ struct EditableStat: View {
     var body: some View {
         TextField("", value: $value, format: .number)
             .keyboardType(.numberPad)
+            .multilineTextAlignment(.trailing)
             .focused($isFocused)
             .textFieldStyle(.plain)
-            .fixedSize()
-            .padding(.horizontal, 20)
             .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
+            .contentShape(Rectangle())
             .animation(.easeInOut(duration: 0.15), value: isFocused)
+            .onChange(of: isFocused) { _, newValue in
+                if newValue {
+                    selectAllText()
+                }
+            }
     }
 }
 
@@ -35,12 +36,22 @@ struct EditableTitle: View {
     var body: some View {
         TextField("Exercise name", text: $name)
             .focused($isFocused)
-            .fixedSize()
             .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFocused ? Color(.tertiarySystemFill) : .clear)
-            )
+            .contentShape(Rectangle())
             .animation(.easeInOut(duration: 0.15), value: isFocused)
+            .onChange(of: isFocused) { _, newValue in
+                if newValue {
+                    selectAllText()
+                }
+            }
+    }
+}
+
+extension View {
+    func selectAllText() {
+        // Dispatching to the main queue ensures the keyboard/field has fully become first responder
+        DispatchQueue.main.async {
+            UIApplication.shared.sendAction(#selector(UIResponder.selectAll(_:)), to: nil, from: nil, for: nil)
+        }
     }
 }

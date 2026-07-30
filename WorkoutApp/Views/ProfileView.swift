@@ -14,6 +14,24 @@ struct ProfileView: View {
         VStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    
+                    HStack{
+                        Text("Oliver")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    
+                    HStack{
+                        
+                        Text("Followers")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    
+                    
                     if history.isEmpty {
                         Text("No workouts logged yet")
                             .foregroundColor(.secondary)
