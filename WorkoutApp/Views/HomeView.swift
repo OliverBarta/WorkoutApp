@@ -43,7 +43,7 @@ struct HomeView: View {
                                     
                                     Text("\(dayNumber)")
                                         .font(.caption)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Theme.oppositeBackground)
                                         .frame(width: 45, height: 45)
                                         .background(dayInWorkout ? Theme.primary : Color.clear)
                                         .clipShape(
@@ -53,6 +53,15 @@ struct HomeView: View {
                                                 bottomTrailingRadius: 12,
                                                 topTrailingRadius: 12
                                             )
+                                        )
+                                        .overlay(
+                                            UnevenRoundedRectangle(
+                                                topLeadingRadius: 12,
+                                                bottomLeadingRadius: 12,
+                                                bottomTrailingRadius: 12,
+                                                topTrailingRadius: 12
+                                            )
+                                            .stroke(Color.gray, lineWidth: 1)
                                         )
                                 }
                                 

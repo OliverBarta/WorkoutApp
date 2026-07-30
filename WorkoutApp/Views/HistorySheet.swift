@@ -70,10 +70,17 @@ struct HistorySheet: View {
 
                             Text("\(dayNumber)")
                                 .font(.caption)
-                                .foregroundColor(hasWorkout ? .white : .primary)
                                 .frame(width: 40, height: 40)
                                 .background(hasWorkout ? Color.blue : Color.clear)
-                                .clipShape(Circle())
+                                .clipShape(
+                                    UnevenRoundedRectangle(
+                                        topLeadingRadius: 12,
+                                        bottomLeadingRadius: 12,
+                                        bottomTrailingRadius: 12,
+                                        topTrailingRadius: 12
+                                    )
+                                )
+                                
                         } else {
                             Color.clear
                                 .frame(width: 40, height: 40)
