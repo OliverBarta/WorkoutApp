@@ -15,6 +15,8 @@ struct RoutineDuringWorkoutView: View {
     
     @Environment(\.modelContext) private var modelContext
     
+    @State private var keyboardObserver = KeyboardObserver()
+    
     private var sortedExercises: [Exercise] {
         workoutSession.workoutRoutine?.exercises.sorted { $0.order < $1.order } ?? []
     }
@@ -150,14 +152,24 @@ struct RoutineDuringWorkoutView: View {
                     .frame(height: 30)
                     Spacer()
                 }
-                VStack {
-                    Spacer()
-                    RestTimer()
-                        .id("rest-timer")
-                }
             }
-            
-            
+        }
+        .safeAreaInset(edge: .bottom) {
+            if keyboardObserver.isVisible {
+                HStack {
+                    Spacer()
+                    Button {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    } label: {
+                        Image(systemName: "keyboard.chevron.compact.down")
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                }
+            } else {
+                RestTimer()
+                    .id("rest-timer")
+            }
         }
         .sheet(isPresented: $showExerciseSearch) {
             if let workoutRoutine = workoutSession.workoutRoutine {
@@ -193,9 +205,6 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     // saves routine to history
-                    if let originalRoutine = workoutSession.originalRoutine {
-                        routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
-                    }
                     
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {
@@ -216,10 +225,6 @@ struct RoutineDuringWorkoutView: View {
                 .cornerRadius(12)
                 
                 Button {
-                    
-                    if let originalRoutine = workoutSession.originalRoutine {
-                        routine.exercises = originalRoutine.exercises.map { $0.copyCompletedSetsToZero() }
-                    }
                     
                     workoutSession.end()
                     dismiss()
