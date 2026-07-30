@@ -8,9 +8,19 @@
 import Foundation
 
 enum ExerciseCatalog {
-    static let all: [ExerciseTemplate] = [
-        ExerciseTemplate(name: "Bench Press", muscleGroup: "Chest", imageName: "bench-press"),
-        ExerciseTemplate(name: "Squat Barbell", muscleGroup: "Legs", imageName: "squat-barbell"),
-        // TODO: Add more exercises, perhaps use a JSON file instead
-    ]
+    static let all: [ExerciseTemplate] = load()
+
+    private static func load() -> [ExerciseTemplate] {
+        guard let url = Bundle.main.url(forResource: "exercises-2", withExtension: "json") else {
+            assertionFailure("exercises.json not in bundle")
+            return []
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode([ExerciseTemplate].self, from: data)
+        } catch {
+            assertionFailure("Decode failed: \(error)")
+            return []
+        }
+    }
 }
