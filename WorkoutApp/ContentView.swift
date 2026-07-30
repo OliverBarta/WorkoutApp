@@ -31,9 +31,9 @@ struct ContentView: View {
                         Label("Running", systemImage: "figure.run")
                     }
                 
-                ProfileView()
+                ExploreView()
                     .tabItem {
-                        Label("Profile", systemImage: "person.fill")
+                        Label("Explore", systemImage: "magnifyingglass")
                     }
             }
             if workoutSession.isActive {
@@ -44,7 +44,7 @@ struct ContentView: View {
         }
         .fullScreenCover(isPresented: $workoutSession.showActiveWorkout) {
             if let originalRoutine = workoutSession.originalRoutine {
-                NavigationStack {
+                ZStack {
                     RoutineDuringWorkoutView(routine: originalRoutine)
                 }
                 .environment(workoutSession)

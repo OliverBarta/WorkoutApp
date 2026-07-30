@@ -26,8 +26,8 @@ struct RoutineEditView: View {
             ScrollView {
                 // rectangle bumps the rest of the scroll bar down so its under the tool bar (tool bar = overlay)
                 Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: 30)
+                    .padding(.top, 35)
+                    .opacity(0)
                 
                 TextField("Routine name", text: $routine.name)
                     .textFieldStyle(.roundedBorder)

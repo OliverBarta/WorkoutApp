@@ -17,6 +17,9 @@ struct WorkoutView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
+                Rectangle()
+                    .padding(.top, 35)
+                    .opacity(0)
 
                 Button {
                     let newRoutine = Routine(name: "Routine \(nextRoutineNumber)")
@@ -27,7 +30,6 @@ struct WorkoutView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 50)
                 .padding(.horizontal)
                 
                 ForEach(routines) { routine in
