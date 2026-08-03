@@ -10,6 +10,8 @@ import SwiftData
 
 struct WorkoutView: View {
     @Environment(\.modelContext) private var modelContext
+    
+    // query makes routines the same everywhere so just type this and the variable is the same
     @Query private var routines: [Routine]
 
     private var nextRoutineNumber: Int { routines.count + 1 }
@@ -25,19 +27,21 @@ struct WorkoutView: View {
                     let newRoutine = Routine(name: "Routine \(nextRoutineNumber)")
                     modelContext.insert(newRoutine)
                 } label : {
-                    Text("Routine")
-                    Image(systemName: "plus")
+                    HStack {
+                        Text("Routine")
+                        Image(systemName: "plus")
+                    }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.liquidGlass(tintColor: Theme.primary))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 
                 ForEach(routines) { routine in
-                    RoutineCard(routine: routine)
-                        .listRowSeparator(.hidden)
+                    RoutineCard(routine: routine, deletableCard: true)
+//                        .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
-                        .padding(.bottom, 15)
+//                        .padding(.top, 10)
                 }
 
             }

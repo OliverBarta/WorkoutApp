@@ -11,11 +11,21 @@ import SwiftData
 @main
 struct WorkoutAppApp: App {
     @State private var workoutSession = WorkoutSession()
+    @State private var authManager = AuthManager()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(workoutSession)
+            Group {
+                if authManager.isLoading {
+                    ProgressView()
+                } else if authManager.isSignedIn {
+                    ContentView()
+                } else {
+                    SignInView()
+                }
+            }
+            .environment(workoutSession)
+            .environment(authManager)
         }
         .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self])
     }

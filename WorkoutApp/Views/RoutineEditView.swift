@@ -36,11 +36,13 @@ struct RoutineEditView: View {
                     Button {
                         showExerciseSearch = true
                     } label : {
-                        Text("Exercise")
-                        Image(systemName: "plus")
+                        HStack {
+                            Text("Exercise")
+                            Image(systemName: "plus")
+                        }
                     }
                     .padding(.horizontal)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.liquidGlass(tintColor: Theme.primary))
                     
                     Spacer()
                     
@@ -56,10 +58,13 @@ struct RoutineEditView: View {
                         )
                         routine.exercises.append(newExercise)
                     } label : {
-                       Text("Custom Exercise")
-                       Image(systemName: "plus")
+                        HStack {
+                            Text("Custom Exercise")
+                            Image(systemName: "plus")
+                        }
                     }
                     .padding(.horizontal)
+                    .buttonStyle(.liquidGlass(tintColor: Theme.grey))
                     
                 }
                 
@@ -87,6 +92,15 @@ struct RoutineEditView: View {
                     
                     HStack {
                         Button {
+                            
+                            Task {
+                                do {
+                                    try await uploadRoutineToSupabase(routine)
+                                } catch {
+                                    print("Upload failed: \(error)")
+                                }
+                            }
+                            
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.backward")

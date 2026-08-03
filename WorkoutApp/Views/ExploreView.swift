@@ -14,7 +14,7 @@ struct ExploreView: View {
                 .padding(.top, 35)
                 .opacity(0)
             
-            Text("Explore")
+            Text("Find your friends and see their posts")
         }
         .frame(maxWidth: .infinity)
         .overlay {

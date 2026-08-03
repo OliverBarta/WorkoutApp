@@ -43,10 +43,12 @@ struct RoutineDuringWorkoutView: View {
                         Button {
                             showExerciseSearch = true
                         } label : {
-                            Text("Exercise")
-                            Image(systemName: "plus")
+                            HStack {
+                                Text("Exercise")
+                                Image(systemName: "plus")
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.liquidGlass(tintColor: Theme.primary))
                         .padding(.horizontal)
                         
                         Spacer()
@@ -54,9 +56,12 @@ struct RoutineDuringWorkoutView: View {
                         Button {
                             showingAddExerciseAlert = true
                         } label : {
-                            Text("Custom Exercise")
-                            Image(systemName: "plus")
+                            HStack {
+                                Text("Custom exercise")
+                                Image(systemName: "plus")
+                            }
                         }
+                        .buttonStyle(.liquidGlass(tintColor: Theme.grey))
                         .padding(.horizontal)
                     }
                     .padding(.top, 125)
@@ -183,6 +188,14 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     // saves routine to history and updates the routine
+                    
+                    Task {
+                        do {
+                            try await uploadRoutineToSupabase(routine)
+                        } catch {
+                            print("Upload failed: \(error)")
+                        }
+                    }
                     
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {

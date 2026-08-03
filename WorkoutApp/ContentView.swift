@@ -30,7 +30,6 @@ struct ContentView: View {
                     .tabItem {
                         Label("Running", systemImage: "figure.run")
                     }
-                
                 ExploreView()
                     .tabItem {
                         Label("Explore", systemImage: "magnifyingglass")

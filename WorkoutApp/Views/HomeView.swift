@@ -10,7 +10,9 @@ import SwiftData
 struct HomeView: View {
     @Query(sort: \WorkoutHistoryEntry.dateCompleted, order: .reverse) private var history: [WorkoutHistoryEntry]
     
+    @Query private var routines: [Routine]
     
+    @Environment(WorkoutSession.self) private var workoutSession
     
     @State private var showSettings = false
     @State private var showHistory = false
@@ -18,7 +20,7 @@ struct HomeView: View {
     var body: some View {
         VStack {
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: 10) {
                     
                     Rectangle()
                         .padding(.top, 35)
@@ -26,7 +28,7 @@ struct HomeView: View {
                     
                     Button {
                         showHistory = true
-                    } label: {
+                    } label: { 
                         VStack(spacing: 12) {
                             Text("History")
                                 .font(.headline)
@@ -41,28 +43,21 @@ struct HomeView: View {
                                         Calendar.current.isDate(historyItem.dateCompleted, inSameDayAs: date)
                                     }
                                     
-                                    Text("\(dayNumber)")
-                                        .font(.caption)
-                                        .foregroundColor(Theme.oppositeBackground)
-                                        .frame(width: 45, height: 45)
-                                        .background(dayInWorkout ? Theme.primary : Color.clear)
-                                        .clipShape(
-                                            UnevenRoundedRectangle(
-                                                topLeadingRadius: 12,
-                                                bottomLeadingRadius: 12,
-                                                bottomTrailingRadius: 12,
-                                                topTrailingRadius: 12
-                                            )
-                                        )
-                                        .overlay(
-                                            UnevenRoundedRectangle(
-                                                topLeadingRadius: 12,
-                                                bottomLeadingRadius: 12,
-                                                bottomTrailingRadius: 12,
-                                                topTrailingRadius: 12
-                                            )
+                                    ZStack {
+                                        Color.clear
+                                            .aspectRatio(1, contentMode: .fill)
+                                        
+                                        Text("\(dayNumber)")
+                                            .font(.caption)
+                                            .foregroundColor(Theme.oppositeBackground)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .background(dayInWorkout ? Theme.primary : Color.clear)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
                                             .stroke(Color.gray, lineWidth: 1)
-                                        )
+                                    )
                                 }
                                 
                             }
@@ -72,7 +67,13 @@ struct HomeView: View {
                         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.horizontal)
+                    .buttonStyle(.plain)
+                    
+                    
+                    if routines.count >= 1 {
+                        // Routine that the user hasn't hit in the longest time
+                        RoutineCard(routine: routines[0], deletableCard: false)
+                    }
                     
                     if history.isEmpty {
                         Text("No workouts logged yet")
@@ -81,7 +82,6 @@ struct HomeView: View {
                     } else {
                         ForEach(history) { entry in
                             WorkoutHistoryCard(entry: entry)
-                                .padding()
                         }
                     }
                 }
@@ -127,4 +127,5 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
+        .environment(WorkoutSession())
 }
