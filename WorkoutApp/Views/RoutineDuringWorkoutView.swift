@@ -80,6 +80,7 @@ struct RoutineDuringWorkoutView: View {
                 .padding(.bottom, 100)
                 
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxHeight: .infinity)
             .overlay {
                 // this overlay houses the back button finish button title (Routine 1) and both progress bars
@@ -91,16 +92,18 @@ struct RoutineDuringWorkoutView: View {
                                     workoutSession.showActiveWorkout = false
                                 } label: {
                                     Image(systemName: "chevron.backward")
+                                        .padding(5)
                                 }
                                 .buttonStyle(.glass)
-                                .foregroundColor(Theme.oppositeBackground)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Button("Finish") {
+                                Button {
                                     showDoneDialog = true
+                                } label: {
+                                    Text("Finish")
+                                        .padding(5)
                                 }
                                 .buttonStyle(.glass)
-                                .foregroundColor(Theme.oppositeBackground)
                                 .frame(maxWidth: .infinity, alignment: .trailing)
                                 
                             }
@@ -179,6 +182,7 @@ struct RoutineDuringWorkoutView: View {
         .sheet(isPresented: $showExerciseSearch) {
             if let workoutRoutine = workoutSession.workoutRoutine {
                 ExerciseSearchView(routine: workoutRoutine)
+                    .presentationCornerRadius(12)// makes the sheet 12 radius corners
             }
         }
         .sheet(isPresented: $showDoneDialog) {

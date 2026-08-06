@@ -86,9 +86,11 @@ struct HomeView: View {
                     }
                 }
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxWidth: .infinity)
             .sheet(isPresented: $showSettings) {
                 SettingsMenu()
+                    .presentationCornerRadius(12)// makes the sheet 12 radius corners
             }
             .sheet(isPresented: $showHistory) {
                 HistorySheet()

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+// this is the struct that makes the exercise able to be written into a json file, so it can be written into one cell on a supabase data table
 struct ExerciseDTO: Codable {
     var name: String
     var reps: [Int]

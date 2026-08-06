@@ -45,6 +45,7 @@ struct WorkoutView: View {
                 }
 
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxWidth: .infinity)
             .overlay {
                 VStack {
@@ -59,6 +60,6 @@ struct WorkoutView: View {
 
 #Preview {
     WorkoutView()
-            .modelContainer(for: Routine.self, inMemory: true)
-            .environment(WorkoutSession())
+        .modelContainer(for: Routine.self, inMemory: true)
+        .environment(WorkoutSession())
 }

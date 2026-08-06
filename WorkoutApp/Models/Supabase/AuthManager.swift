@@ -14,6 +14,7 @@ import Observation
 class AuthManager {
     var currentUser: Supabase.User?
     var currentUsername: String?
+    var currentUserId: UUID?
     var isLoading = true
 
     init() {
@@ -58,6 +59,8 @@ class AuthManager {
     func fetchUsername() async {
         guard let userId = currentUser?.id else { return }
 
+        currentUserId = userId
+        
         struct ProfileRow: Decodable {
             let username: String
         }

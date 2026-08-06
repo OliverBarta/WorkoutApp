@@ -7,6 +7,7 @@
 
 import Supabase
 
+// this function deletes a given routine from supabase
 func deleteRoutineFromSupabase(_ routine: Routine) async throws {
     try await supabase
         .from("routines")

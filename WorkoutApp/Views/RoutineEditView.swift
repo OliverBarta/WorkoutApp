@@ -78,6 +78,7 @@ struct RoutineEditView: View {
                 .padding(.top, 10)
                 
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxHeight: .infinity)
         }
         .onTapGesture {
@@ -104,6 +105,7 @@ struct RoutineEditView: View {
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.backward")
+                                .padding(5)
                         }
                         .buttonStyle(.glass)
                         .foregroundColor(Theme.oppositeBackground)
@@ -132,6 +134,7 @@ struct RoutineEditView: View {
         }
         .sheet(isPresented: $showExerciseSearch) {
             ExerciseSearchView(routine: routine)
+                .presentationCornerRadius(12)// makes the sheet 12 radius corners
         }
     }
 }

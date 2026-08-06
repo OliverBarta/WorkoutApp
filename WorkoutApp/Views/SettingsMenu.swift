@@ -14,6 +14,8 @@ struct SettingsMenu: View {
     @State private var newUsername = ""
     @State private var errorMessage: String = ""
     @State private var showChangeUsername: Bool = false
+    @State private var followerCount = 0
+    @State private var followingCount = 0
     
     var body: some View {
         VStack {
@@ -25,14 +27,14 @@ struct SettingsMenu: View {
                 Spacer()
                 Text("Followers: ")
                     .font(.subheadline)
-                Text("12")
+                Text("\(followerCount)")
                     .font(.headline)
                 
                 Spacer()
                 
                 Text("Following: ")
                     .font(.subheadline)
-                Text("5")
+                Text("\(followingCount)")
                     .font(.headline)
                 
             }
@@ -73,7 +75,6 @@ struct SettingsMenu: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.top, 35)
         .alert("Enter new username", isPresented: $showChangeUsername) {
             TextField("Exercise Name", text: $newUsername)
             
@@ -86,6 +87,20 @@ struct SettingsMenu: View {
             Button("Cancel", role: .cancel) {
                 newUsername = ""
             }
+        }
+        .task {
+            await loadCounts()
+        }
+    }
+    
+    private func loadCounts() async {
+        guard let userId = authManager.currentUserId else { return }
+
+        do {
+            followerCount = try await pullFollowerCount(userId)
+            followingCount = try await pullFollowingCount(userId)
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
     

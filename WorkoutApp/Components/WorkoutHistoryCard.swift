@@ -15,10 +15,12 @@ struct WorkoutHistoryCard: View {
         entry.dateCompleted.formatted(date: .abbreviated, time: .shortened)
     }
     
+    @State private var showSpectateView: Bool = false
+    
     var body: some View {
         Button {
             // code this in the future
-            // this should open this workout
+            showSpectateView = true
         } label : {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
@@ -61,6 +63,9 @@ struct WorkoutHistoryCard: View {
             .cornerRadius(12)
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+        .fullScreenCover(isPresented: $showSpectateView) {
+            RoutineSpectateView(routine: workoutHistoryToRoutine(entry), saveRoutine: true)
+        }
     }
 }
 
