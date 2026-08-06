@@ -8,6 +8,8 @@
 import SwiftData
 import Foundation
 
+// this is the format it is saved to history in. It is different from the Routine class as it has dates completed and duration
+
 @Model
 class WorkoutHistoryEntry {
     var routineName: String
@@ -105,3 +107,4 @@ func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry) -> Rout
     return finalRoutine
     
 }
+

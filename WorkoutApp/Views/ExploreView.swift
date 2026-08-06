@@ -94,6 +94,8 @@ struct ProfileListRow: View {
     
     @State private var isFollowing: Bool
     
+    @State private var showProfileView: Bool = false
+    
     init(profile: ProfileRow) {
         self.profile = profile
         _isFollowing = State(initialValue: profile.isFollowing)
@@ -102,6 +104,7 @@ struct ProfileListRow: View {
     var body: some View {
         Button {
             // should go to profile view
+            showProfileView = true
         } label : {
             Circle()
                 .fill(Theme.primary.opacity(0.3))
@@ -137,9 +140,13 @@ struct ProfileListRow: View {
         .frame(maxWidth: .infinity)
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .cornerRadius(12)
+        .fullScreenCover(isPresented: $showProfileView) {
+            ProfileView(givenId: profile.id)
+        }
     }
 }
 
 #Preview {
     ExploreView()
+        .environment(AuthManager())
 }

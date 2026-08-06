@@ -22,3 +22,21 @@ struct RoutineDTO: Codable {
     var name: String
     var exercises: [ExerciseDTO]
 }
+
+extension RoutineDTO {
+    func toModel() -> Routine {
+        let routine = Routine(id: id, name: name)
+        routine.exercises = exercises.map {
+            Exercise(
+                name: $0.name,
+                reps: $0.reps,
+                completedSets: [],
+                weights: $0.weights,
+                restTime: $0.restTime,
+                type: $0.type,
+                order: $0.order
+            )
+        }
+        return routine
+    }
+}
