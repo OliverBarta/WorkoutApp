@@ -12,6 +12,7 @@
 		A7179649301879830055634F /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = A7179648301879830055634F /* PostgREST */; };
 		A717964B301879830055634F /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = A717964A301879830055634F /* Realtime */; };
 		A717964D301879830055634F /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = A717964C301879830055634F /* Storage */; };
+		A7B1F0F1302051F300CE1C45 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A7B1F0F0302051F300CE1C45 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 			files = (
 				A7179649301879830055634F /* PostgREST in Frameworks */,
 				A7179647301879830055634F /* Functions in Frameworks */,
+				A7B1F0F1302051F300CE1C45 /* Supabase in Frameworks */,
 				A7179645301879830055634F /* Auth in Frameworks */,
 				A717964D301879830055634F /* Storage in Frameworks */,
 				A717964B301879830055634F /* Realtime in Frameworks */,
@@ -46,6 +48,7 @@
 			isa = PBXGroup;
 			children = (
 				A78CD5C43007DD2400B68913 /* WorkoutApp */,
+				A7B1F0EF302051F300CE1C45 /* Frameworks */,
 				A78CD5C33007DD2400B68913 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +59,13 @@
 				A78CD5C23007DD2400B68913 /* WorkoutApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A7B1F0EF302051F300CE1C45 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,6 +93,7 @@
 				A7179648301879830055634F /* PostgREST */,
 				A717964A301879830055634F /* Realtime */,
 				A717964C301879830055634F /* Storage */,
+				A7B1F0F0302051F300CE1C45 /* Supabase */,
 			);
 			productName = WorkoutApp;
 			productReference = A78CD5C23007DD2400B68913 /* WorkoutApp.app */;
@@ -272,7 +283,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = BFUH7DZ98U;
+				DEVELOPMENT_TEAM = 8M379LYGHF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -305,7 +316,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = BFUH7DZ98U;
+				DEVELOPMENT_TEAM = 8M379LYGHF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
@@ -390,6 +401,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A7179643301879830055634F /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Storage;
+		};
+		A7B1F0F0302051F300CE1C45 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A7179643301879830055634F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -43,10 +43,12 @@ struct RoutineDuringWorkoutView: View {
                         Button {
                             showExerciseSearch = true
                         } label : {
-                            Text("Exercise")
-                            Image(systemName: "plus")
+                            HStack {
+                                Text("Exercise")
+                                Image(systemName: "plus")
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.liquidGlass(tintColor: Theme.primary))
                         .padding(.horizontal)
                         
                         Spacer()
@@ -54,9 +56,12 @@ struct RoutineDuringWorkoutView: View {
                         Button {
                             showingAddExerciseAlert = true
                         } label : {
-                            Text("Custom Exercise")
-                            Image(systemName: "plus")
+                            HStack {
+                                Text("Custom exercise")
+                                Image(systemName: "plus")
+                            }
                         }
+                        .buttonStyle(.liquidGlass(tintColor: Theme.grey))
                         .padding(.horizontal)
                     }
                     .padding(.top, 125)
@@ -75,6 +80,7 @@ struct RoutineDuringWorkoutView: View {
                 .padding(.bottom, 100)
                 
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxHeight: .infinity)
             .overlay {
                 // this overlay houses the back button finish button title (Routine 1) and both progress bars
@@ -86,16 +92,18 @@ struct RoutineDuringWorkoutView: View {
                                     workoutSession.showActiveWorkout = false
                                 } label: {
                                     Image(systemName: "chevron.backward")
+                                        .padding(5)
                                 }
                                 .buttonStyle(.glass)
-                                .foregroundColor(Theme.oppositeBackground)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 
-                                Button("Finish") {
+                                Button {
                                     showDoneDialog = true
+                                } label: {
+                                    Text("Finish")
+                                        .padding(5)
                                 }
                                 .buttonStyle(.glass)
-                                .foregroundColor(Theme.oppositeBackground)
                                 .frame(maxWidth: .infinity, alignment: .trailing)
                                 
                             }
@@ -174,6 +182,7 @@ struct RoutineDuringWorkoutView: View {
         .sheet(isPresented: $showExerciseSearch) {
             if let workoutRoutine = workoutSession.workoutRoutine {
                 ExerciseSearchView(routine: workoutRoutine)
+                    .presentationCornerRadius(12)// makes the sheet 12 radius corners
             }
         }
         .sheet(isPresented: $showDoneDialog) {
@@ -183,6 +192,14 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     // saves routine to history and updates the routine
+                    
+                    Task {
+                        do {
+                            try await uploadRoutineToSupabase(routine)
+                        } catch {
+                            print("Upload failed: \(error)")
+                        }
+                    }
                     
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {

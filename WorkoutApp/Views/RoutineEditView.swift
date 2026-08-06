@@ -36,11 +36,13 @@ struct RoutineEditView: View {
                     Button {
                         showExerciseSearch = true
                     } label : {
-                        Text("Exercise")
-                        Image(systemName: "plus")
+                        HStack {
+                            Text("Exercise")
+                            Image(systemName: "plus")
+                        }
                     }
                     .padding(.horizontal)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.liquidGlass(tintColor: Theme.primary))
                     
                     Spacer()
                     
@@ -56,10 +58,13 @@ struct RoutineEditView: View {
                         )
                         routine.exercises.append(newExercise)
                     } label : {
-                       Text("Custom Exercise")
-                       Image(systemName: "plus")
+                        HStack {
+                            Text("Custom Exercise")
+                            Image(systemName: "plus")
+                        }
                     }
                     .padding(.horizontal)
+                    .buttonStyle(.liquidGlass(tintColor: Theme.grey))
                     
                 }
                 
@@ -73,6 +78,7 @@ struct RoutineEditView: View {
                 .padding(.top, 10)
                 
             }
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxHeight: .infinity)
         }
         .onTapGesture {
@@ -87,9 +93,19 @@ struct RoutineEditView: View {
                     
                     HStack {
                         Button {
+                            
+                            Task {
+                                do {
+                                    try await uploadRoutineToSupabase(routine)
+                                } catch {
+                                    print("Upload failed: \(error)")
+                                }
+                            }
+                            
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.backward")
+                                .padding(5)
                         }
                         .buttonStyle(.glass)
                         .foregroundColor(Theme.oppositeBackground)
@@ -118,6 +134,7 @@ struct RoutineEditView: View {
         }
         .sheet(isPresented: $showExerciseSearch) {
             ExerciseSearchView(routine: routine)
+                .presentationCornerRadius(12)// makes the sheet 12 radius corners
         }
     }
 }

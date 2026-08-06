@@ -1,49 +1,31 @@
 //
-//  ExcerciseEditCard.swift
+//  UneditableExerciseCard.swift
 //  WorkoutApp
 //
-//  Created by Oliver Barta on 2026-07-15.
+//  Created by Oliver Barta on 2026-08-05.
 //
 
 import SwiftUI
-import SwiftData
 
 
-// the exercise card for edit view
-struct ExerciseEditCard: View {
-    @Bindable var exercise: Exercise
-    @Environment(\.modelContext) private var modelContext
+// uneditable exercise card.
+// this is for when ur viewing someone else's workout
+struct UneditableExerciseCard: View {
+    let exercise: Exercise
+    
     private let rowHeight: CGFloat = 60
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                EditableTitle(name: $exercise.name)
+                Text(exercise.name)
                     .font(.headline)
                     .multilineTextAlignment(.leading)
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Menu {
-                    Button("Change type") {
-                        if exercise.type == "lb" {
-                            exercise.type = "kg"
-                        } else if exercise.type == "kg" {
-                            exercise.type = "sec"
-                        } else {
-                            exercise.type = "lb"
-                        }
-                    }
-                    Button("Delete", role: .destructive) {
-                        modelContext.delete(exercise)
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                .frame(alignment: .trailing)
             }
             HStack {
-                EditableStat(value: $exercise.restTime)
+                Text("\(exercise.restTime)")
                     .foregroundColor(.secondary)
                     
                 Text("second rest timer")
@@ -57,11 +39,11 @@ struct ExerciseEditCard: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
-                        EditableStat(value: $exercise.reps[index])
+                        Text("\(exercise.reps[index])")
                         Text("reps")
                             .foregroundColor(.secondary)
                         Spacer()
-                        EditableStat(value: $exercise.weights[index])
+                        Text("\(exercise.weights[index])")
                         Text(exercise.type)
                             .foregroundColor(.secondary)
                     }
@@ -81,20 +63,6 @@ struct ExerciseEditCard: View {
             .listRowSpacing(0)
             .padding(.horizontal, -16)
             .frame(height: CGFloat(exercise.reps.count) * rowHeight)
-
-            Button {
-                if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
-                    exercise.reps.append(lastSetReps)
-                    exercise.weights.append(lastWeight)
-                } else {
-                    exercise.reps.append(0)
-                    exercise.weights.append(0)
-                }
-            } label : {
-                Text("Add set")
-                Image(systemName: "plus")
-            }
-            .padding(.top)
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -103,7 +71,7 @@ struct ExerciseEditCard: View {
 }
 
 #Preview {
-    ExerciseEditCard(
+    UneditableExerciseCard(
         exercise: Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
     )
 }

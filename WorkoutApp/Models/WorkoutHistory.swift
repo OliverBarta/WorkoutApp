@@ -76,3 +76,32 @@ func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ mod
 
     modelContext.insert(entry)
 }
+
+// converts a workoutHistoryEntry into type Routine
+func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry) -> Routine {
+    let finalRoutine = Routine(name: workoutHistoryEntry.routineName)
+    
+    var orderTracked = -1
+    
+    finalRoutine.exercises = workoutHistoryEntry.exerciseSnapshots.compactMap { exerciseSnapshot in
+        orderTracked += 1
+        
+        let exercise = Exercise(
+            name: exerciseSnapshot.name,
+            reps: exerciseSnapshot.reps,
+            completedSets: [],
+            weights: exerciseSnapshot.weights,
+            restTime: 60,
+            type: exerciseSnapshot.type,
+            order: orderTracked
+        )
+        
+        exercise.routine = finalRoutine
+        
+        return exercise
+        
+    }
+    
+    return finalRoutine
+    
+}

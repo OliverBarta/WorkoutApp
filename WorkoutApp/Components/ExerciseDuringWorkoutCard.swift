@@ -115,6 +115,7 @@ struct ExerciseDuringWorkoutCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
+        .glassEffect(in: RoundedRectangle(cornerRadius: 12))
     }
 }
 

@@ -50,7 +50,7 @@ extension Routine {
 @Model
 class Exercise {
     var name: String
-    var reps: [Int] // sets
+    var reps: [Int] // a array of reps
     var completedSets: Set<Int>
     var weights: [Int]
     var restTime: Int
