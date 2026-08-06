@@ -1,21 +1,18 @@
 //
-//  WorkoutHistoryCard.swift
+//  ExploreRoutineCard.swift
 //  WorkoutApp
 //
-//  Created by Oliver Barta on 2026-07-27.
+//  Created by Oliver Barta on 2026-08-06.
 //
+
 
 import SwiftUI
 
-
-struct WorkoutHistoryCard: View {
+// the routine card you see on other people's profiles
+struct ExploreRoutineCard: View {
     
-    let entry: WorkoutHistoryEntry
+    let routine: Routine
 
-    private var formattedDate: String {
-        entry.dateCompleted.formatted(date: .abbreviated, time: .shortened)
-    }
-    
     @State private var showSpectateView: Bool = false
     
     var body: some View {
@@ -25,19 +22,12 @@ struct WorkoutHistoryCard: View {
         } label : {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(entry.routineName)
+                    Text(routine.name)
                         .font(.headline)
                     Spacer()
-                    Text(SecondsFormatted(seconds: entry.durationSeconds))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                 }
                 
-                Text(formattedDate)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                ForEach(entry.exerciseSnapshots) { exercise in
+                ForEach(routine.exercises) { exercise in
                     HStack {
                         Text(exercise.name)
                             .font(.subheadline)
@@ -65,19 +55,11 @@ struct WorkoutHistoryCard: View {
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .fullScreenCover(isPresented: $showSpectateView) {
-            RoutineSpectateView(routine: workoutHistoryToRoutine(entry), saveRoutine: true)
+            RoutineSpectateView(routine: routine, saveRoutine: true)
         }
     }
 }
 
 #Preview {
-    WorkoutHistoryCard(
-        entry: WorkoutHistoryEntry(
-            routineName: "Push Day",
-            durationSeconds: 2401,
-            exerciseSnapshots: [
-                ExerciseSnapshot(name: "Bench Press", reps: [8,8,8], weights: [135,135,135], type: "lb")
-            ]
-        )
-    )
+    ExploreRoutineCard(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squat", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
 }

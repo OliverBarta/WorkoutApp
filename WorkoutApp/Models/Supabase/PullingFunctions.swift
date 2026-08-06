@@ -71,3 +71,42 @@ func pullFollowingCount(_ userId: UUID) async throws -> Int {
 
     return response.count ?? 0
 }
+
+struct WorkoutActivityRow: Decodable, Identifiable {
+    let id: UUID
+    let name: String
+    let duration_seconds: Int
+    let completed_sets: Int
+    let total_sets: Int
+    let created_at: Date
+}
+
+func pullFullRoutines(_ userId: UUID) async throws -> [Routine] {
+    let dtos: [RoutineDTO] = try await supabase
+        .from("routines")
+        .select()
+        .eq("user_id", value: userId)
+        .execute()
+        .value
+
+    return dtos.map { $0.toModel() }
+}
+
+func pullUsername(_ userId: UUID) async throws -> String {
+    struct UsernameRow: Decodable {
+        let username: String
+    }
+
+    let rows: [UsernameRow] = try await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", value: userId)
+        .execute()
+        .value
+
+    guard let username = rows.first?.username else {
+        throw NSError(domain: "Profile", code: 0, userInfo: [NSLocalizedDescriptionKey: "No profile found for this user"])
+    }
+
+    return username
+}
