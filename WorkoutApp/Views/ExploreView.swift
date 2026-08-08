@@ -11,17 +11,20 @@ struct ExploreView: View {
     
     @State private var searchText = ""
     @State private var profiles: [ProfileRow] = []
+    
     // possible error message from supabase
-    @State private var errorMessage: String?
+    @State private var errorMessage: String = ""
     
     // if the search bar is focused or not
     @FocusState private var isSearchFocused: Bool
     
+    // used to make the search re-search every 300ms not every key stroke
+    @State private var searchTask: Task<Void, Never>?
+    
     // filters the profiles by the search
     var filtered: [ProfileRow] {
         return profiles.filter {
-            $0.id != authManager.currentUserId &&
-            $0.username.localizedCaseInsensitiveContains(searchText)
+            $0.id != authManager.currentUserId
         }
     }
 
@@ -33,15 +36,10 @@ struct ExploreView: View {
                     .padding(.top, 35)
                     .opacity(0)
                 
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                }
-                
                 CustomSearchBar(text: $searchText, isFocused: $isSearchFocused, placeHolderText: "Find people")
                     .padding(.horizontal)
                 
-                if searchText != "" {
+                if !searchText.isEmpty {
                     if filtered.isEmpty {
                         Text("No results")
                             .foregroundColor(.secondary)
@@ -71,17 +69,35 @@ struct ExploreView: View {
                     Text("Explore")
                         .headerStyle()
                 }
+                TopPopUp(message: $errorMessage)
+                
                 Spacer()
             }
         }
-        .task {
-            await loadProfiles()
+        .onChange(of: searchText) { _, newValue in
+            searchTask?.cancel()
+            
+            // if the search is empty don't pull from database
+            guard !newValue.isEmpty else {
+                profiles = []
+                return
+            }
+            
+            searchTask = Task {
+                do {
+                    try await Task.sleep(nanoseconds: 300_000_000) // 300ms
+                    guard !Task.isCancelled else { return }
+                    await search(newValue)
+                } catch {
+                    // Task.sleep throws if cancelled — nothing to do here
+                }
+            }
         }
     }
 
-    private func loadProfiles() async {
+    private func search(_ text: String) async {
         do {
-            profiles = try await pullProfilesFromSupabase()
+            profiles = try await pullProfilesFromSupabase(searchText: text)
         } catch {
             errorMessage = "Failed to load: \(error.localizedDescription)"
         }

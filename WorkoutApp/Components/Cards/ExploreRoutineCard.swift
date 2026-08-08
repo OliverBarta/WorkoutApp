@@ -55,7 +55,7 @@ struct ExploreRoutineCard: View {
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .fullScreenCover(isPresented: $showSpectateView) {
-            RoutineSpectateView(routine: routine, saveRoutine: true)
+            RoutineSpectateView(routine: routine)
         }
     }
 }

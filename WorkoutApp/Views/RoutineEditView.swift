@@ -16,6 +16,10 @@ struct RoutineEditView: View {
     @State private var keyboardObserver = KeyboardObserver()
     
     @State private var showExerciseSearch = false
+    
+    @State private var errorMessage: String = ""
+    
+    @FocusState private var isRoutineNameEditorFocused: Bool
 
     private var sortedExercises: [Exercise] {
         routine.exercises.sorted { $0.order < $1.order }
@@ -29,9 +33,13 @@ struct RoutineEditView: View {
                     .padding(.top, 35)
                     .opacity(0)
                 
-                TextField("Routine name", text: $routine.name)
-                    .textFieldStyle(.roundedBorder)
+//                CustomSearchBar("Routine name", text: $routine.name)
+//                    .textFieldStyle(.roundedBorder)
+//                    .padding()
+                
+                CustomSearchBar(text: $routine.name, isFocused: $isRoutineNameEditorFocused, placeHolderText: "Routine name")
                     .padding()
+                
                 HStack {
                     Button {
                         showExerciseSearch = true
@@ -78,10 +86,12 @@ struct RoutineEditView: View {
                 .padding(.top, 10)
                 
             }
+            
             .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxHeight: .infinity)
         }
         .onTapGesture {
+            isRoutineNameEditorFocused = false
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
         .overlay {
@@ -98,7 +108,7 @@ struct RoutineEditView: View {
                                 do {
                                     try await uploadRoutineToSupabase(routine)
                                 } catch {
-                                    print("Upload failed: \(error)")
+                                    errorMessage = "Upload failed: \(error)"
                                 }
                             }
                             
@@ -115,6 +125,7 @@ struct RoutineEditView: View {
                     .padding(.horizontal)
                     
                 }
+                TopPopUp(message: $errorMessage)
                 Spacer()
             }
         }

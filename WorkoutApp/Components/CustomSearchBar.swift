@@ -18,6 +18,9 @@ struct CustomSearchBar: View {
         HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
+                .onTapGesture {
+                    isFocused.wrappedValue = true
+                }
 
             TextField(placeHolderText, text: $text)
                 .textFieldStyle(.plain)
@@ -26,6 +29,7 @@ struct CustomSearchBar: View {
             if !text.isEmpty {
                 Button {
                     text = ""
+                    isFocused.wrappedValue = true
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.secondary)
@@ -35,6 +39,27 @@ struct CustomSearchBar: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 16)
         .glassEffect(in: Capsule())
+        .overlay { // animated border
+            if isFocused.wrappedValue {
+                TimelineView(.animation) { context in
+                    let angle = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 2) / 2 * 360
+
+                    Capsule()
+                        .stroke(
+                            AngularGradient(
+                                colors: [.blue, .pink, .blue],
+                                center: .center,
+                                angle: .degrees(angle)
+                            ),
+                            lineWidth: 2
+                        )
+                }
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isFocused.wrappedValue = true
+        }
     }
 }
 

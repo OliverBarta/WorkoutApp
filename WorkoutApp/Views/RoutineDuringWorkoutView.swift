@@ -26,6 +26,7 @@ struct RoutineDuringWorkoutView: View {
     @State private var newExerciseName = ""
     @State private var showExerciseSearch = false
     @State private var showEndWorkoutVerifactionWindow = false
+    @State private var errorMessage: String = ""
     
     
     @Environment(\.dismiss) private var dismiss
@@ -156,6 +157,9 @@ struct RoutineDuringWorkoutView: View {
                         .glassEffect()
                         .padding(.horizontal)
                     }
+                    .overlay {
+                        TopPopUp(message: $errorMessage)
+                    }
                     .padding(.top, -15)
                     .frame(height: 30)
                     Spacer()
@@ -197,7 +201,7 @@ struct RoutineDuringWorkoutView: View {
                         do {
                             try await uploadRoutineToSupabase(routine)
                         } catch {
-                            print("Upload failed: \(error)")
+                            errorMessage = "Upload failed: \(error)"
                         }
                     }
                     
