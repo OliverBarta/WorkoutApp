@@ -13,13 +13,13 @@ struct RoutineSpectateView: View {
     
     let routine: Routine
     
-    let saveRoutine: Bool
-    
     @Query private var routines: [Routine]
     
     @Environment(\.dismiss) private var dismiss
     
     @Environment(\.modelContext) private var modelContext
+    
+    @State private var errorMessage: String = ""
     
     private var sortedExercises: [Exercise] {
         routine.exercises.sorted { $0.order < $1.order }
@@ -53,6 +53,7 @@ struct RoutineSpectateView: View {
                         .headerStyle()
                         .frame(maxWidth: .infinity, alignment: .center)
                     
+                    
                     HStack {
                         Button {
                             dismiss()
@@ -64,34 +65,36 @@ struct RoutineSpectateView: View {
                         .foregroundColor(Theme.oppositeBackground)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        if saveRoutine {
-                            Button {
-                                // saves the routine to the users routines on the database and locally
-                                // database save
-                                Task {
-                                    do {
-                                        try await uploadRoutineToSupabase(routine)
-                                    } catch {
-                                        print("Upload failed: \(error)")
-                                    }
+                        Button {
+                            // saves the routine to the users routines on the database and locally
+                            // database save
+                            Task {
+                                do {
+                                    
+                                    let newRoutine = try await copyRoutineToSupabase(routine)
+                                    
+                                    modelContext.insert(newRoutine)
+                                } catch {
+                                    errorMessage = "Failed to upload routine error: \(error.localizedDescription)"
                                 }
-                                
-                                // local save
-                                modelContext.insert(routine)
-                                
-                            } label: {
-                                Image(systemName: "square.and.arrow.down")
-                                    .padding(5)
                             }
-                            .buttonStyle(.glass)
-                            .foregroundColor(Theme.oppositeBackground)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                                .padding(5)
                         }
+                        .buttonStyle(.glass)
+                        .foregroundColor(Theme.oppositeBackground)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                            
                         
                     }
                     .padding(.horizontal)
                     
                 }
+                
+                TopPopUp(message: $errorMessage)
+                
                 Spacer()
             }
         }
@@ -99,6 +102,6 @@ struct RoutineSpectateView: View {
 }
 
 #Preview {
-    RoutineSpectateView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squat", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]), saveRoutine: true)
+    RoutineSpectateView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squat", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
         .modelContainer(for: Routine.self, inMemory: true)
 }

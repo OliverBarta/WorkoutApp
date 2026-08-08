@@ -38,3 +38,51 @@ func uploadRoutineToSupabase(_ routine: Routine) async throws {
         .upsert(dto)
         .execute()
 }
+
+// same as above function but generates a new routine ID and returns the new routine
+// useful when a user is copying someone else's routine
+func copyRoutineToSupabase(_ routine: Routine) async throws -> Routine {
+    guard let userId = supabase.auth.currentSession?.user.id else {
+        throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
+    }
+
+    let exerciseDTOs = routine.exercises.map {
+        ExerciseDTO(
+            name: $0.name,
+            reps: $0.reps,
+            weights: $0.weights,
+            restTime: $0.restTime,
+            type: $0.type,
+            order: $0.order
+        )
+    }
+
+    let newId = UUID()
+
+    let dto = RoutineDTO(
+        id: newId,
+        user_id: userId,
+        name: routine.name,
+        exercises: exerciseDTOs
+    )
+
+    try await supabase
+        .from("routines")
+        .upsert(dto)
+        .execute()
+
+    let newRoutine = Routine(id: newId, name: routine.name)
+    newRoutine.exercises = routine.exercises.map {
+        Exercise(
+            name: $0.name,
+            reps: $0.reps,
+            completedSets: [],
+            weights: $0.weights,
+            restTime: $0.restTime,
+            type: $0.type,
+            order: $0.order
+        )
+    }
+
+    return newRoutine
+}

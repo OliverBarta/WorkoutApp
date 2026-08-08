@@ -51,12 +51,6 @@ struct ProfileView: View {
             } else {
                 Text("No routines")
             }
-            
-            
-            
-            if errorMessage != "" {
-                Text(errorMessage)
-            }
         }
         .task {
             await loadCounts()
@@ -93,6 +87,8 @@ struct ProfileView: View {
                     .padding(.horizontal)
                     
                 }
+                TopPopUp(message: $errorMessage)
+                
                 Spacer()
             }
         }

@@ -19,16 +19,52 @@ struct ProfileRow: Decodable, Identifiable {
     }
 }
 
-func pullProfilesFromSupabase() async throws -> [ProfileRow] {
+//func pullProfilesFromSupabase() async throws -> [ProfileRow] {
+//    guard let currentUserId = supabase.auth.currentSession?.user.id else {
+//        throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
+//    }
+//
+//    var profiles: [ProfileRow] = try await supabase
+//        .from("profiles")
+//        .select("id, username")
+//        .execute()
+//        .value
+//
+//    struct FollowingRow: Decodable {
+//        let following_id: UUID
+//    }
+//
+//    let followingRows: [FollowingRow] = try await supabase
+//        .from("follows")
+//        .select("following_id")
+//        .eq("follower_id", value: currentUserId)
+//        .execute()
+//        .value
+//
+//    let followingIds = Set(followingRows.map { $0.following_id })
+//
+//    for index in profiles.indices {
+//        profiles[index].isFollowing = followingIds.contains(profiles[index].id)
+//    }
+//
+//    return profiles
+//}
+
+// pulls all profiles rom supabase whose username mathes the searchText
+func pullProfilesFromSupabase(searchText: String) async throws -> [ProfileRow] {
     guard let currentUserId = supabase.auth.currentSession?.user.id else {
         throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
     }
 
-    var profiles: [ProfileRow] = try await supabase
+    var query = supabase
         .from("profiles")
         .select("id, username")
-        .execute()
-        .value
+
+    if !searchText.isEmpty {
+        query = query.ilike("username", pattern: "%\(searchText)%")
+    }
+
+    var profiles: [ProfileRow] = try await query.execute().value
 
     struct FollowingRow: Decodable {
         let following_id: UUID
@@ -81,6 +117,7 @@ struct WorkoutActivityRow: Decodable, Identifiable {
     let created_at: Date
 }
 
+// pulls all the routines for a user
 func pullFullRoutines(_ userId: UUID) async throws -> [Routine] {
     let dtos: [RoutineDTO] = try await supabase
         .from("routines")
