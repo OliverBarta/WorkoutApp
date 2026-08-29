@@ -38,20 +38,29 @@ struct UneditableExerciseCard: View {
                         Text("Set \(index + 1)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(exercise.reps[index])")
-                        Text("reps")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(exercise.weights[index])")
-                        Text(exercise.type)
-                            .foregroundColor(.secondary)
+                        if exercise.repsColumn {
+                            Spacer()
+                            Text("\(exercise.reps[index])")
+                            Text("reps")
+                                .foregroundColor(.secondary)
+                        }
+                        if exercise.weightColumn {
+                            Spacer()
+                            Text("\(formattedWeight(exercise.weights[index]))")
+                            Text("lb")
+                                .foregroundColor(.secondary)
+                        }
+                        if exercise.secsColumn {
+                            Spacer()
+                            Text("\(exercise.seconds[index])")
+                            Text("sec")
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .listRowBackground(Color.clear)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
-                            exercise.reps.remove(at: index)
-                            exercise.weights.remove(at: index)
+                            exercise.removeSet(at: index)
                         }
                         .labelStyle(.titleOnly)
                     }
@@ -72,6 +81,6 @@ struct UneditableExerciseCard: View {
 
 #Preview {
     UneditableExerciseCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)
     )
 }

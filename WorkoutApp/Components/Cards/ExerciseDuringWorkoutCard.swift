@@ -24,15 +24,10 @@ struct ExerciseDuringWorkoutCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Menu {
-                    Button("Change units") {
-                        if exercise.type == "lb" {
-                            exercise.type = "kg"
-                        } else if exercise.type == "kg" {
-                            exercise.type = "sec"
-                        } else {
-                            exercise.type = "lb"
-                        }
-                    }
+                    Toggle("Reps column", isOn: $exercise.repsColumn)
+                    Toggle("Weight column", isOn: $exercise.weightColumn)
+                    Toggle("Seconds column", isOn: $exercise.secsColumn)
+
                     Button("Delete", role: .destructive) {
                         modelContext.delete(exercise)
                         workoutSession.removeExercise(exercise)
@@ -49,15 +44,25 @@ struct ExerciseDuringWorkoutCard: View {
                     Text("Set \(index + 1)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                    Spacer()
-                    EditableStat(value: $exercise.reps[index])
-                    Text("reps")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    EditableStat(value: $exercise.weights[index])
-                    Text(exercise.type)
-                        .foregroundColor(.secondary)
-                    
+                    if exercise.repsColumn {
+                        Spacer()
+                        EditableStat(value: $exercise.reps[index])
+                        Text("reps")
+                            .foregroundColor(.secondary)
+                    }
+                    if exercise.weightColumn {
+                        Spacer()
+                        EditableStatDouble(value: $exercise.weights[index])
+                        Text("lb")
+                            .foregroundColor(.secondary)
+                    }
+                    if exercise.secsColumn {
+                        Spacer()
+                        EditableStat(value: $exercise.seconds[index])
+                        Text("sec")
+                            .foregroundColor(.secondary)
+                    }
+
                     Spacer()
                     
                     Button {
@@ -83,12 +88,9 @@ struct ExerciseDuringWorkoutCard: View {
                 .listRowBackground(exercise.completedSets.contains(index) ? Theme.checkedSetGreen : Color.clear)
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
-                        exercise.reps.remove(at: index)
-                        exercise.weights.remove(at: index)
-                        
+                        exercise.removeSet(at: index)
                     }
                     .labelStyle(.titleOnly)
-                    
                 }
             }
             .listStyle(.plain)
@@ -100,13 +102,7 @@ struct ExerciseDuringWorkoutCard: View {
             .frame(height: rowHeightValue * CGFloat(exercise.reps.count))
             
             Button {
-                if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
-                    exercise.reps.append(lastSetReps)
-                    exercise.weights.append(lastWeight)
-                } else {
-                    exercise.reps.append(0)
-                    exercise.weights.append(0)
-                }
+                exercise.addSet()
             } label : {
                 Text("Add set")
                 Image(systemName: "plus")
@@ -122,11 +118,11 @@ struct ExerciseDuringWorkoutCard: View {
 
 #Preview {
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60)]))
     
     
     return ExerciseDuringWorkoutCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60, order: 0)
     )
     .environment(session)
 }

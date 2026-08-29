@@ -92,7 +92,7 @@ struct RestTimer: View {
             
             let remainingTime = max(0, exercise.restTime - Int(now.timeIntervalSince(startDate)))
             
-            Text(SecondsFormatted(seconds: remainingTime))
+            Text(SecondsFormatted(remainingTime))
                 .foregroundColor(textColor)
                 .fontWeight(.bold)
             
@@ -110,13 +110,13 @@ struct RestTimer: View {
         .contentShape(Rectangle())
     }
 }
-
-#Preview {
-    let session = WorkoutSession()
-    let exercise = Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, type: "lb")
-    session.start(Routine(name: "Routine 1", exercises: [exercise]))
-    session.startRestTimer(exercise)
-
-    return RestTimer()
-        .environment(session)
-}
+//
+//#Preview {
+//    let session = WorkoutSession()
+//    let exercise = Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)
+//    session.start(Routine(name: "Routine 1", exercises: [exercise]))
+//    session.startRestTimer(exercise)
+//
+//    return RestTimer()
+//        .environment(session)
+//}

@@ -20,8 +20,11 @@ func uploadRoutineToSupabase(_ routine: Routine) async throws {
             name: $0.name,
             reps: $0.reps,
             weights: $0.weights,
+            seconds: $0.seconds,
             restTime: $0.restTime,
-            type: $0.type,
+            repsColumn: $0.repsColumn,
+            weightColumn: $0.weightColumn,
+            secsColumn: $0.secsColumn,
             order: $0.order
         )
     }
@@ -51,8 +54,11 @@ func copyRoutineToSupabase(_ routine: Routine) async throws -> Routine {
             name: $0.name,
             reps: $0.reps,
             weights: $0.weights,
+            seconds: $0.seconds,
             restTime: $0.restTime,
-            type: $0.type,
+            repsColumn: $0.repsColumn,
+            weightColumn: $0.weightColumn,
+            secsColumn: $0.secsColumn,
             order: $0.order
         )
     }
@@ -76,10 +82,13 @@ func copyRoutineToSupabase(_ routine: Routine) async throws -> Routine {
         Exercise(
             name: $0.name,
             reps: $0.reps,
+            seconds: $0.seconds,
             completedSets: [],
             weights: $0.weights,
             restTime: $0.restTime,
-            type: $0.type,
+            repsColumn: $0.repsColumn,
+            weightColumn: $0.weightColumn,
+            secsColumn: $0.secsColumn,
             order: $0.order
         )
     }

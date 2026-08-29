@@ -24,6 +24,8 @@ enum Theme {
             }
         })
     }
+    
+    static let orange = Color.orange
 
     static var progressBarBackground = Color(.secondarySystemBackground)
     

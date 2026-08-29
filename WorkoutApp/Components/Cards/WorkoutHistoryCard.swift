@@ -11,10 +11,6 @@ import SwiftUI
 struct WorkoutHistoryCard: View {
     
     let entry: WorkoutHistoryEntry
-
-    private var formattedDate: String {
-        entry.dateCompleted.formatted(date: .abbreviated, time: .shortened)
-    }
     
     @State private var showSpectateView: Bool = false
     
@@ -28,12 +24,12 @@ struct WorkoutHistoryCard: View {
                     Text(entry.routineName)
                         .font(.headline)
                     Spacer()
-                    Text(SecondsFormatted(seconds: entry.durationSeconds))
+                    Text(SecondsFormatted(entry.durationSeconds))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
-                Text(formattedDate)
+                Text(formattedDate(entry.dateCompleted))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -47,15 +43,15 @@ struct WorkoutHistoryCard: View {
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(Array(zip(exercise.reps, exercise.weights).enumerated()), id: \.offset) { index, pair in
-                                    let (reps, weight) = pair
-                                    Text("\(reps) x \(weight)\(exercise.type)")
+                                ForEach(0..<min(exercise.reps.count, exercise.weights.count, exercise.seconds.count), id: \.self) { index in
+                                    Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn))
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                             }
                         }
                     }
+                    
                 }
             }
             .padding()
@@ -74,9 +70,9 @@ struct WorkoutHistoryCard: View {
     WorkoutHistoryCard(
         entry: WorkoutHistoryEntry(
             routineName: "Push Day",
-            durationSeconds: 2401,
+            durationSeconds: 30000,
             exerciseSnapshots: [
-                ExerciseSnapshot(name: "Bench Press", reps: [8,8,8], weights: [135,135,135], type: "lb")
+                ExerciseSnapshot(name: "Bench Press", reps: [8,8,8], weights: [135.0,135.0,135.0], seconds: [0,0,0], repsColumn: true, weightColumn: true, secsColumn: false)
             ]
         )
     )

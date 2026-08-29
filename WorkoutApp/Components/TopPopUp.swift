@@ -11,6 +11,8 @@ import SwiftUI
 struct TopPopUp: View {
     @Binding var message: String
     
+    var addSpaceUnder: Bool = true
+    
     var body: some View {
         VStack {
             if message != "" {
@@ -18,6 +20,8 @@ struct TopPopUp: View {
                     Text(message)
                         .font(.subheadline)
                         .fontWeight(.semibold)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     
                 }
                 .padding()
@@ -33,7 +37,9 @@ struct TopPopUp: View {
                     }
                 }
             }
-            Spacer()
+            if addSpaceUnder {
+                Spacer()
+            }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: message)
     }
@@ -48,7 +54,7 @@ struct ExampleView: View {
             VStack {
                 Button("Show Pop-up") {
                     withAnimation {
-                        message = "test"
+                        message = "long text so it should wrap around test. Just typing this to make the text longer, ok i think this is long enough."
                     }
                 }
             }

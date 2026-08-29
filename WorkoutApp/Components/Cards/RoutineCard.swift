@@ -79,7 +79,7 @@ struct RoutineCard: View {
                     Text("Edit Routine")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.liquidGlass(tintColor: Theme.grey))
+                .buttonStyle(.glass)
                 
                 Button {
                     workoutSession.start(routine)
@@ -88,7 +88,7 @@ struct RoutineCard: View {
                     Text("Start Routine")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+                .buttonStyle(.glassProminent)
                 
             }
         }
@@ -139,22 +139,6 @@ struct RoutineCard: View {
         
     }
 }
-
-//#Preview {
-//    RoutineCard(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squats", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Abs", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
-//        .environment(WorkoutSession())
-//}
-
-
-//#Preview {
-//    RoutineCard(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squats", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
-//        .environment(WorkoutSession())
-//}
-//
-//#Preview {
-//    RoutineCard(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
-//        .environment(WorkoutSession())
-//}
 
 #Preview {
     RoutineCard(routine: Routine(name: "Routine 1"), deletableCard: true)

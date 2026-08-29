@@ -32,10 +32,13 @@ struct ExerciseSearchView: View {
                     let newExercise = Exercise(
                         name: exercise.name,
                         reps: [8],
+                        seconds: [0],
                         completedSets: [],
                         weights: [0],
                         restTime: 60,
-                        type: "lb",
+                        repsColumn: true,
+                        weightColumn: true,
+                        secsColumn: false,
                         order: routine.exercises.count
                     )
                     

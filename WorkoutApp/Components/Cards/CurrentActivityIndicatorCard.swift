@@ -90,7 +90,7 @@ struct CurrentActivityIndicatorCard: View {
 
 #Preview {
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3,3,3,3], completedSets: [1,2,3,4,5,6,7,8,9,10], weights: [3,3,3,3,3,3,3,3,3,3,3], restTime: 60, type: "lb")]))
+    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7,8,9,10], weights: [3,3,3,3,3,3,3,3,3,3,3], restTime: 60)]))
 
     return CurrentActivityIndicatorCard()
         .environment(session)

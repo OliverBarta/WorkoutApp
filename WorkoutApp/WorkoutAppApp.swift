@@ -17,7 +17,7 @@ struct WorkoutAppApp: App {
         WindowGroup {
             Group {
                 if authManager.isLoading {
-                    ProgressView()
+                    LoadingStartView()
                 } else if authManager.isSignedIn {
                     ContentView()
                 } else {

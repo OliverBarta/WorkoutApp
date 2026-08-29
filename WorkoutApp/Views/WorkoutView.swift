@@ -32,16 +32,14 @@ struct WorkoutView: View {
                         Image(systemName: "plus")
                     }
                 }
-                .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+                .buttonStyle(.glassProminent)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 
                 ForEach(routines) { routine in
                     RoutineCard(routine: routine, deletableCard: true)
-//                        .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
-//                        .padding(.top, 10)
                 }
 
             }

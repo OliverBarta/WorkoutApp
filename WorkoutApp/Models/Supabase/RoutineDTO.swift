@@ -10,9 +10,13 @@ import Foundation
 struct ExerciseDTO: Codable {
     var name: String
     var reps: [Int]
-    var weights: [Int]
+    var weights: [Double]
+    var seconds: [Int]
     var restTime: Int
-    var type: String
+    // these 3 bools are whether or not the reps / weight / seconds column is shown for this exercise
+    var repsColumn: Bool = true
+    var weightColumn: Bool = true
+    var secsColumn: Bool = false
     var order: Int
 }
 
@@ -30,13 +34,33 @@ extension RoutineDTO {
             Exercise(
                 name: $0.name,
                 reps: $0.reps,
+                seconds: $0.seconds,
                 completedSets: [],
                 weights: $0.weights,
                 restTime: $0.restTime,
-                type: $0.type,
+                repsColumn: $0.repsColumn,
+                weightColumn: $0.weightColumn,
+                secsColumn: $0.secsColumn,
                 order: $0.order
             )
         }
         return routine
+    }
+}
+
+extension ExerciseDTO {
+    func toModel() -> Exercise {
+        Exercise(
+            name: name,
+            reps: reps,
+            seconds: seconds,
+            completedSets: [],
+            weights: weights,
+            restTime: restTime,
+            repsColumn: repsColumn,
+            weightColumn: weightColumn,
+            secsColumn: secsColumn,
+            order: order
+        )
     }
 }

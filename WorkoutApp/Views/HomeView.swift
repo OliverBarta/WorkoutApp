@@ -13,9 +13,12 @@ struct HomeView: View {
     @Query private var routines: [Routine]
     
     @Environment(WorkoutSession.self) private var workoutSession
-    
+
+    @Environment(AuthManager.self) private var authManager
+
     @State private var showSettings = false
     @State private var showHistory = false
+    @State private var showStreakInfo = false
 
     var body: some View {
         VStack {
@@ -95,13 +98,33 @@ struct HomeView: View {
             .sheet(isPresented: $showHistory) {
                 HistorySheet()
                     .presentationDetents([.height(380)])
-                
+            }
+            .sheet(isPresented: $showStreakInfo) {
+                StreakSheet()
+                    .presentationDetents([.height(380)])
             }
             
             .overlay {
                 VStack {
                     ZStack {
                         HStack {
+                            
+                            Button {
+                                showStreakInfo = true
+                            } label : {
+                                Text("\(authManager.currentStreak)")
+                                    .foregroundColor(Theme.orange)
+                                    .padding(.vertical, 12)
+                                    .padding(.leading, 12)
+                                
+                                Image(systemName: "flame")
+                                    .foregroundColor(Theme.orange)
+                                    .padding(.vertical, 12)
+                                    .padding(.trailing, 12)
+                            }
+                            .glassEffect()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
                             Button {
                                 showSettings = true
                             } label : {
@@ -130,4 +153,5 @@ struct HomeView: View {
     HomeView()
         .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
         .environment(WorkoutSession())
+        .environment(AuthManager())
 }

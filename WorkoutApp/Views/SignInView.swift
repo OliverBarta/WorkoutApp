@@ -13,7 +13,7 @@ struct SignInView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isSigningUp = false
-    @State private var errorMessage: String?
+    @State private var errorMessage: String = ""
     @State private var isSubmitting = false
 
     var body: some View {
@@ -32,12 +32,6 @@ struct SignInView: View {
             SecureField("Password", text: $password)
                 .textFieldStyle(.roundedBorder)
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundColor(.red)
-            }
-
             Button {
                 Task { await submit() }
             } label: {
@@ -49,24 +43,24 @@ struct SignInView: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+            .buttonStyle(.glassProminent)
             .disabled(email.isEmpty || password.isEmpty || isSubmitting)
 
             Button {
                 isSigningUp.toggle()
-                errorMessage = nil
             } label: {
                 Text(isSigningUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
                     .font(.footnote)
             }
-            .buttonStyle(.liquidGlass(tintColor: Theme.grey))
+            .buttonStyle(.glass)
+            
+            TopPopUp(message: $errorMessage)
         }
         .padding()
     }
 
     private func submit() async {
         isSubmitting = true
-        errorMessage = nil
 
         do {
             if isSigningUp {
@@ -76,6 +70,7 @@ struct SignInView: View {
             }
         } catch {
             errorMessage = error.localizedDescription
+            print(error.localizedDescription)
         }
 
         isSubmitting = false
