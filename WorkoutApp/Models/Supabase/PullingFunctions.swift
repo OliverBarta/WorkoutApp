@@ -19,40 +19,14 @@ struct ProfileRow: Decodable, Identifiable {
     }
 }
 
-//func pullProfilesFromSupabase() async throws -> [ProfileRow] {
-//    guard let currentUserId = supabase.auth.currentSession?.user.id else {
-//        throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
-//    }
-//
-//    var profiles: [ProfileRow] = try await supabase
-//        .from("profiles")
-//        .select("id, username")
-//        .execute()
-//        .value
-//
-//    struct FollowingRow: Decodable {
-//        let following_id: UUID
-//    }
-//
-//    let followingRows: [FollowingRow] = try await supabase
-//        .from("follows")
-//        .select("following_id")
-//        .eq("follower_id", value: currentUserId)
-//        .execute()
-//        .value
-//
-//    let followingIds = Set(followingRows.map { $0.following_id })
-//
-//    for index in profiles.indices {
-//        profiles[index].isFollowing = followingIds.contains(profiles[index].id)
-//    }
-//
-//    return profiles
-//}
-
 // pulls all profiles rom supabase whose username mathes the searchText
 func pullProfilesFromSupabase(searchText: String) async throws -> [ProfileRow] {
-    guard let currentUserId = supabase.auth.currentSession?.user.id else {
+    let currentUserId: UUID
+    if let sessionUserId = supabase.auth.currentSession?.user.id {
+        currentUserId = sessionUserId
+    } else if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {// this middle else if is just so you can see the explore view search in preview mode
+        currentUserId = UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")!
+    } else {
         throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
     }
 
@@ -108,13 +82,16 @@ func pullFollowingCount(_ userId: UUID) async throws -> Int {
     return response.count ?? 0
 }
 
-struct WorkoutActivityRow: Decodable, Identifiable {
-    let id: UUID
-    let name: String
-    let duration_seconds: Int
-    let completed_sets: Int
-    let total_sets: Int
-    let created_at: Date
+// checks whether followerId currently follows followingId
+func pullIsFollowing(followerId: UUID, followingId: UUID) async throws -> Bool {
+    let response = try await supabase
+        .from("follows")
+        .select("*", head: true, count: .exact)
+        .eq("follower_id", value: followerId)
+        .eq("following_id", value: followingId)
+        .execute()
+
+    return (response.count ?? 0) > 0
 }
 
 // pulls all the routines for a user
@@ -129,6 +106,7 @@ func pullFullRoutines(_ userId: UUID) async throws -> [Routine] {
     return dtos.map { $0.toModel() }
 }
 
+// gets the username for a given id
 func pullUsername(_ userId: UUID) async throws -> String {
     struct UsernameRow: Decodable {
         let username: String
@@ -147,3 +125,124 @@ func pullUsername(_ userId: UUID) async throws -> String {
 
     return username
 }
+
+// pulls all the followers following the given userId and returns an array of there IDs
+func pullFollowingIds(_ userId: UUID) async throws -> [UUID] {
+    struct FollowingRow: Decodable { let following_id: UUID }
+    let rows: [FollowingRow] = try await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", value: userId)
+        .execute()
+        .value
+    return rows.map { $0.following_id }
+}
+
+struct HistoryRow: Decodable, Identifiable {
+    let id: UUID
+    let routine_id: UUID
+    let user_id: UUID
+    let name: String
+    let exercises: [ExerciseDTO]
+    let updated_at: Date
+    let duration_seconds: Int
+}
+
+// pulls all the history for the users that are in the followingIds and userId. Limits it to limit.
+func pullFeed(userId: UUID, followingIds: [UUID], before: Date? = nil, limit: Int = 10) async throws -> [HistoryRow] {
+    let query = supabase
+        .from("history")
+        .select()
+        .in("user_id", values: followingIds + [userId])
+
+    let filteredQuery: PostgrestFilterBuilder
+    if let before {
+        filteredQuery = query.lt("updated_at", value: before)
+    } else {
+        filteredQuery = query
+    }
+
+    return try await filteredQuery
+        .order("updated_at", ascending: false)
+        .limit(limit)
+        .execute()
+        .value
+}
+
+func pullFeedGlobal(userId: UUID, before: Date? = nil, limit: Int = 10) async throws -> [HistoryRow] {
+    let query = supabase
+        .from("history")
+        .select()
+
+    let filteredQuery: PostgrestFilterBuilder
+    if let before {
+        filteredQuery = query.lt("updated_at", value: before)
+    } else {
+        filteredQuery = query
+    }
+
+    return try await filteredQuery
+        .order("updated_at", ascending: false)
+        .limit(limit)
+        .execute()
+        .value
+}
+
+func pullLikes(historyId: UUID) async throws -> Int {
+    let numLikes = try await supabase
+        .from("likes")
+        .select(head: true, count: .exact)
+        .eq("history_item_id", value: historyId)
+        .execute()
+    
+    return numLikes.count ?? 0
+}
+
+func isUserLikingPost(historyId: UUID, userId: UUID) async throws -> Bool {
+    let response = try await supabase
+        .from("likes")
+        .select(head: true, count: .exact)
+        .eq("history_item_id", value: historyId)
+        .eq("user_id", value: userId)
+        .execute()
+    
+    return (response.count ?? 0) > 0
+}
+
+// pulls a given users streak number
+func pullStreak(userId: UUID) async throws -> Int {
+    struct StreakRow: Decodable {
+        let streak: Int
+    }
+    
+    do {
+        let row: StreakRow = try await supabase
+            .from("streaks")
+            .select("streak")
+            .eq("user_id", value: userId)
+            .single()
+            .execute()
+            .value
+        
+        return row.streak
+    } catch {
+        return 0
+    }
+}
+
+struct comment: Decodable, Identifiable {
+    let id: UUID
+    let username: String
+    let content: String
+}
+// pulls all comments for a given post
+func pullComments(historyId: UUID) async throws -> [comment] {
+    try await supabase
+        .from("comments")
+        .select("id, username, content")
+        .eq("history_item_id", value: historyId)
+        .execute()
+        .value
+}
+
+

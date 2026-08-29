@@ -31,38 +31,50 @@ class WorkoutHistoryEntry {
 class ExerciseSnapshot {
     var name: String
     var reps: [Int]
-    var weights: [Int]
-    var type: String
-
+    var weights: [Double]
+    var seconds: [Int]
+    var repsColumn: Bool
+    var weightColumn: Bool
+    var secsColumn: Bool
+    
     var historyEntry: WorkoutHistoryEntry?
 
-    init(name: String, reps: [Int], weights: [Int], type: String) {
+    init(name: String, reps: [Int], weights: [Double], seconds: [Int], repsColumn: Bool, weightColumn: Bool, secsColumn: Bool) {
         self.name = name
         self.reps = reps
         self.weights = weights
-        self.type = type
+        self.seconds = seconds
+        self.repsColumn = repsColumn
+        self.weightColumn = weightColumn
+        self.secsColumn = secsColumn
     }
 }
 
 func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ modelContext: ModelContext) {
     let snapshots = workoutRoutine.exercises.compactMap { exercise -> ExerciseSnapshot? in
         
-        var weights: [Int] = []
+        var weights: [Double] = []
+        var seconds: [Int] = []
         var reps: [Int] = []
         
-        for completedSetIndex in exercise.completedSets {
-            if completedSetIndex < exercise.weights.count && completedSetIndex < exercise.reps.count {
-                weights.append(exercise.weights[completedSetIndex])
+        // adds all sets that got completed to the workout history to be uploaded.
+        for completedSetIndex in exercise.completedSets.sorted() {
+            if completedSetIndex < exercise.weights.count && completedSetIndex < exercise.reps.count && completedSetIndex < exercise.seconds.count {
                 reps.append(exercise.reps[completedSetIndex])
+                weights.append(exercise.weights[completedSetIndex])
+                seconds.append(exercise.seconds[completedSetIndex])
             }
         }
-        
-        if reps.count > 0 {
+
+        if !reps.isEmpty {
             return ExerciseSnapshot(
                 name: exercise.name,
                 reps: reps,
                 weights: weights,
-                type: exercise.type
+                seconds: seconds,
+                repsColumn: exercise.repsColumn,
+                weightColumn: exercise.weightColumn,
+                secsColumn: exercise.secsColumn
             )
         } else {
             return nil
@@ -91,10 +103,13 @@ func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry) -> Rout
         let exercise = Exercise(
             name: exerciseSnapshot.name,
             reps: exerciseSnapshot.reps,
+            seconds: exerciseSnapshot.seconds,
             completedSets: [],
             weights: exerciseSnapshot.weights,
-            restTime: 60,
-            type: exerciseSnapshot.type,
+            restTime: 60,// replace this with the users default rest time
+            repsColumn: exerciseSnapshot.repsColumn,
+            weightColumn: exerciseSnapshot.weightColumn,
+            secsColumn: exerciseSnapshot.secsColumn,
             order: orderTracked
         )
         

@@ -8,6 +8,8 @@
 import SwiftUI
 import Observation
 
+// the class for a active workout. 
+
 @Observable
 class WorkoutSession {
     // if you change the routine during the workout your changing this variable

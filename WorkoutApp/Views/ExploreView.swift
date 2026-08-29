@@ -21,6 +21,9 @@ struct ExploreView: View {
     // used to make the search re-search every 300ms not every key stroke
     @State private var searchTask: Task<Void, Never>?
     
+    // choose between the global and following only feed
+    @State private var feedType: String = "following"
+        
     // filters the profiles by the search
     var filtered: [ProfileRow] {
         return profiles.filter {
@@ -29,38 +32,64 @@ struct ExploreView: View {
     }
 
     var body: some View {
-        VStack {
-            ScrollView {
-                // padding for the top
-                Rectangle()
-                    .padding(.top, 35)
-                    .opacity(0)
-                
-                CustomSearchBar(text: $searchText, isFocused: $isSearchFocused, placeHolderText: "Find people")
-                    .padding(.horizontal)
-                
-                if !searchText.isEmpty {
-                    if filtered.isEmpty {
-                        Text("No results")
-                            .foregroundColor(.secondary)
-                            .padding(.top, 30)
-                    } else {
-                        VStack(spacing: 12) {
-                            ForEach(filtered) { profile in
-                                ProfileListRow(profile: profile)
+        ScrollView {
+            // padding for the top
+            Rectangle()
+                .padding(.top, 35)
+                .opacity(0)
+            
+            CustomSearchBar(text: $searchText, isFocused: $isSearchFocused, placeHolderText: "Find people")
+                .padding(.horizontal)
+            
+            // stack the people search results with the feed
+            ZStack(alignment: .top) {
+                VStack {
+                    VStack {
+                        Picker("Feed", selection: $feedType) {
+                            Text("Following").tag("following")
+                            Text("Global").tag("global")
+                        }
+                        .blur(radius: !searchText.isEmpty ? 5 : 0)
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+
+                        if let currentUserId = authManager.currentUserId {
+                            if feedType == "following" {
+                                FeedElementFollowing(userId: currentUserId)
+                                    .blur(radius: !searchText.isEmpty ? 5 : 0)
+                            } else {
+                                FeedElementGlobal(userId: currentUserId)
+                                    .blur(radius: !searchText.isEmpty ? 5 : 0)
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 4)
+                    }
+                    .allowsHitTesting(searchText.isEmpty)// only allow clicks when nothing in the search bar
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {// clear search bar when you click this
+                    searchText = ""
+                }
+                VStack {
+                    if !searchText.isEmpty {
+                        if filtered.isEmpty {
+                            Text("No results")
+                                .foregroundColor(.secondary)
+                                .padding(.top, 100)
+                        } else {
+                            VStack(spacing: 8) {
+                                ForEach(filtered) { profile in
+                                    ProfileListRow(profile: profile)
+                                }
+                            }
+                        }
                     }
                 }
-                
             }
-            .scrollIndicators(.hidden)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                isSearchFocused = false
-            }
+        }
+        .scrollIndicators(.hidden)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isSearchFocused = false
         }
         .frame(maxWidth: .infinity)
         .overlay {
@@ -100,6 +129,7 @@ struct ExploreView: View {
             profiles = try await pullProfilesFromSupabase(searchText: text)
         } catch {
             errorMessage = "Failed to load: \(error.localizedDescription)"
+            print("Failed to load: \(error.localizedDescription)")
         }
     }
 }
@@ -116,6 +146,8 @@ struct ProfileListRow: View {
         self.profile = profile
         _isFollowing = State(initialValue: profile.isFollowing)
     }
+    
+    @State private var errorMessage: String = ""
     
     var body: some View {
         Button {
@@ -147,6 +179,7 @@ struct ProfileListRow: View {
                         }
                         isFollowing.toggle()
                     } catch {
+                        errorMessage = "Follow/unfollow failed: \(error)"
                         print("Follow/unfollow failed: \(error)")
                     }
                 }
@@ -162,7 +195,12 @@ struct ProfileListRow: View {
     }
 }
 
+
 #Preview {
-    ExploreView()
-        .environment(AuthManager())
+    let authManager = AuthManager()
+    // this previews as the user Oliver
+    authManager.currentUserId = UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")
+
+    return ExploreView()
+        .environment(authManager)
 }

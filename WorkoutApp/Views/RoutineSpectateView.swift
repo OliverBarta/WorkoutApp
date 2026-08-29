@@ -21,6 +21,8 @@ struct RoutineSpectateView: View {
     
     @State private var errorMessage: String = ""
     
+    @State private var savedMessage: String = ""
+    
     private var sortedExercises: [Exercise] {
         routine.exercises.sorted { $0.order < $1.order }
     }
@@ -74,8 +76,11 @@ struct RoutineSpectateView: View {
                                     let newRoutine = try await copyRoutineToSupabase(routine)
                                     
                                     modelContext.insert(newRoutine)
+                                    
+                                    savedMessage = "Saved"
                                 } catch {
                                     errorMessage = "Failed to upload routine error: \(error.localizedDescription)"
+                                    print("Failed to upload routine error: \(error.localizedDescription)")
                                 }
                             }
                             
@@ -92,9 +97,11 @@ struct RoutineSpectateView: View {
                     .padding(.horizontal)
                     
                 }
-                
-                TopPopUp(message: $errorMessage)
-                
+                VStack {
+                    TopPopUp(message: $errorMessage, addSpaceUnder: false)
+                    TopPopUp(message: $savedMessage, addSpaceUnder: false)
+                }
+    
                 Spacer()
             }
         }
@@ -102,6 +109,6 @@ struct RoutineSpectateView: View {
 }
 
 #Preview {
-    RoutineSpectateView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb"),Exercise(name: "Squat", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    RoutineSpectateView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0), Exercise(name: "Squat", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)]))
         .modelContainer(for: Routine.self, inMemory: true)
 }

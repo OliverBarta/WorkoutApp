@@ -52,13 +52,15 @@ struct SettingsMenu: View {
                                 
                             } catch {
                                 errorMessage = "Sign out failed: \(error)"
+                                print("Sign out failed: \(error)")
                             }
                         }
                     } label : {
                         Text("Sign out")
                             .frame(maxWidth:. infinity)
                     }
-                    .buttonStyle(.liquidGlass(tintColor: Color.red))
+                    .buttonStyle(.glassProminent)
+                    .tint(.red)
                     .frame(maxWidth:. infinity)
                     
                     Button {
@@ -67,11 +69,10 @@ struct SettingsMenu: View {
                         Text("Change username")
                             .frame(maxWidth:. infinity)
                     }
-                    .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+                    .buttonStyle(.glassProminent)
                     .frame(maxWidth:. infinity)
                 }
                 .frame(maxWidth:. infinity)
-                .padding(.horizontal)
                 
                 Spacer()
             }
@@ -102,7 +103,7 @@ struct SettingsMenu: View {
                     Text("Close")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+                .buttonStyle(.glassProminent)
                 .padding(.horizontal)
                 
             }
@@ -118,6 +119,7 @@ struct SettingsMenu: View {
             followingCount = try await pullFollowingCount(userId)
         } catch {
             errorMessage = error.localizedDescription
+            print(error.localizedDescription)
         }
     }
     
@@ -126,6 +128,7 @@ struct SettingsMenu: View {
             try await authManager.updateUsername(newUsername)
         } catch {
             errorMessage = error.localizedDescription
+            print(error.localizedDescription)
         }
     }
 }

@@ -34,7 +34,7 @@ struct StreakSheet: View {
                 Text("Close")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+            .buttonStyle(.glassProminent)
             .padding(.horizontal)
         }
         .padding(.top, 60)

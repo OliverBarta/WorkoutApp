@@ -33,10 +33,6 @@ struct RoutineEditView: View {
                     .padding(.top, 35)
                     .opacity(0)
                 
-//                CustomSearchBar("Routine name", text: $routine.name)
-//                    .textFieldStyle(.roundedBorder)
-//                    .padding()
-                
                 CustomSearchBar(text: $routine.name, isFocused: $isRoutineNameEditorFocused, placeHolderText: "Routine name")
                     .padding()
                 
@@ -44,37 +40,34 @@ struct RoutineEditView: View {
                     Button {
                         showExerciseSearch = true
                     } label : {
-                        HStack {
-                            Text("Exercise")
-                            Image(systemName: "plus")
-                        }
+                        Text("Exercise")
+                        Image(systemName: "plus")
                     }
                     .padding(.horizontal)
-                    .buttonStyle(.liquidGlass(tintColor: Theme.primary))
-                    
-                    Spacer()
+                    .buttonStyle(.glassProminent)
                     
                     Button {
                         let newExercise = Exercise(
                             name: "New Exercise",
                             reps: [8],
+                            seconds: [0],
                             completedSets: [],
                             weights: [0],
                             restTime: 60,
-                            type: "lb",
+                            repsColumn: true,
+                            weightColumn: true,
+                            secsColumn: false,
                             order: routine.exercises.count
                         )
                         routine.exercises.append(newExercise)
                     } label : {
-                        HStack {
-                            Text("Custom Exercise")
-                            Image(systemName: "plus")
-                        }
+                        Text("Custom Exercise")
+                        Image(systemName: "plus")
                     }
-                    .padding(.horizontal)
-                    .buttonStyle(.liquidGlass(tintColor: Theme.grey))
+                    .buttonStyle(.glassProminent)
                     
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 ForEach(sortedExercises) { exercise in
                     ExerciseEditCard(exercise: exercise)
@@ -109,6 +102,7 @@ struct RoutineEditView: View {
                                     try await uploadRoutineToSupabase(routine)
                                 } catch {
                                     errorMessage = "Upload failed: \(error)"
+                                    print("Upload failed: \(error)")
                                 }
                             }
                             
@@ -138,6 +132,8 @@ struct RoutineEditView: View {
                     } label: {
                         Image(systemName: "keyboard.chevron.compact.down")
                             .fontWeight(.semibold)
+                            .padding()
+                            .glassEffect()
                     }
                     .padding()
                 }
@@ -151,5 +147,5 @@ struct RoutineEditView: View {
 }
 
 #Preview {
-    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)]))
 }

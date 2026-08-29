@@ -25,15 +25,10 @@ struct ExerciseEditCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Menu {
-                    Button("Change type") {
-                        if exercise.type == "lb" {
-                            exercise.type = "kg"
-                        } else if exercise.type == "kg" {
-                            exercise.type = "sec"
-                        } else {
-                            exercise.type = "lb"
-                        }
-                    }
+                    Toggle("Reps column", isOn: $exercise.repsColumn)
+                    Toggle("Weight column", isOn: $exercise.weightColumn)
+                    Toggle("Seconds column", isOn: $exercise.secsColumn)
+
                     Button("Delete", role: .destructive) {
                         modelContext.delete(exercise)
                     }
@@ -56,20 +51,29 @@ struct ExerciseEditCard: View {
                         Text("Set \(index + 1)")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        Spacer()
-                        EditableStat(value: $exercise.reps[index])
-                        Text("reps")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        EditableStat(value: $exercise.weights[index])
-                        Text(exercise.type)
-                            .foregroundColor(.secondary)
+                        if exercise.repsColumn {
+                            Spacer()
+                            EditableStat(value: $exercise.reps[index])
+                            Text("reps")
+                                .foregroundColor(.secondary)
+                        }
+                        if exercise.weightColumn {
+                            Spacer()
+                            EditableStatDouble(value: $exercise.weights[index])
+                            Text("lb")
+                                .foregroundColor(.secondary)
+                        }
+                        if exercise.secsColumn {
+                            Spacer()
+                            EditableStat(value: $exercise.seconds[index])
+                            Text("sec")
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .listRowBackground(Color.clear)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
-                            exercise.reps.remove(at: index)
-                            exercise.weights.remove(at: index)
+                            exercise.removeSet(at: index)
                         }
                         .labelStyle(.titleOnly)
                     }
@@ -83,13 +87,7 @@ struct ExerciseEditCard: View {
             .frame(height: CGFloat(exercise.reps.count) * rowHeight)
 
             Button {
-                if let lastSetReps = exercise.reps.last, let lastWeight = exercise.weights.last {
-                    exercise.reps.append(lastSetReps)
-                    exercise.weights.append(lastWeight)
-                } else {
-                    exercise.reps.append(0)
-                    exercise.weights.append(0)
-                }
+                exercise.addSet()
             } label : {
                 Text("Add set")
                 Image(systemName: "plus")
@@ -104,6 +102,6 @@ struct ExerciseEditCard: View {
 
 #Preview {
     ExerciseEditCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb", order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)
     )
 }

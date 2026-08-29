@@ -12,8 +12,12 @@ struct RoutineDuringWorkoutView: View {
     @Bindable var routine: Routine
     
     @Environment(WorkoutSession.self) private var workoutSession
-    
+
     @Environment(\.modelContext) private var modelContext
+
+    @Environment(AuthManager.self) private var authManager
+
+    @Query(sort: \WorkoutHistoryEntry.dateCompleted, order: .reverse) private var history: [WorkoutHistoryEntry]
     
     @State private var keyboardObserver = KeyboardObserver()
     
@@ -26,8 +30,8 @@ struct RoutineDuringWorkoutView: View {
     @State private var newExerciseName = ""
     @State private var showExerciseSearch = false
     @State private var showEndWorkoutVerifactionWindow = false
+    @State private var showClearExercisesVerifactionWindow = false
     @State private var errorMessage: String = ""
-    
     
     @Environment(\.dismiss) private var dismiss
     
@@ -35,12 +39,14 @@ struct RoutineDuringWorkoutView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            
-            
-            
             ScrollView {
-                VStack (spacing: 16) {
-                    HStack {
+                VStack (spacing: 12) {
+                    
+                    Rectangle()
+                        .padding(.top, 100)
+                        .opacity(0)
+                    
+                    HStack(spacing: 2) {
                         Button {
                             showExerciseSearch = true
                         } label : {
@@ -49,10 +55,8 @@ struct RoutineDuringWorkoutView: View {
                                 Image(systemName: "plus")
                             }
                         }
-                        .buttonStyle(.liquidGlass(tintColor: Theme.primary))
+                        .buttonStyle(.glassProminent)
                         .padding(.horizontal)
-                        
-                        Spacer()
                         
                         Button {
                             showingAddExerciseAlert = true
@@ -62,10 +66,9 @@ struct RoutineDuringWorkoutView: View {
                                 Image(systemName: "plus")
                             }
                         }
-                        .buttonStyle(.liquidGlass(tintColor: Theme.grey))
-                        .padding(.horizontal)
+                        .buttonStyle(.glassProminent)
                     }
-                    .padding(.top, 125)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     
                     ForEach(sortedExercises) { exercise in
                         ExerciseDuringWorkoutCard(exercise: exercise)
@@ -75,6 +78,13 @@ struct RoutineDuringWorkoutView: View {
                         showEndWorkoutVerifactionWindow = true
                     } label : {
                         Text("End workout without logging")
+                        Image(systemName: "trash")
+                    }
+                    
+                    Button(role: .destructive) {
+                        showClearExercisesVerifactionWindow = true
+                    } label : {
+                        Text("Clear all exercises")
                         Image(systemName: "trash")
                     }
                 }
@@ -175,6 +185,8 @@ struct RoutineDuringWorkoutView: View {
                     } label: {
                         Image(systemName: "keyboard.chevron.compact.down")
                             .fontWeight(.semibold)
+                            .padding()
+                            .glassEffect()
                     }
                     .padding()
                 }
@@ -196,25 +208,43 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     // saves routine to history and updates the routine
-                    
-                    Task {
-                        do {
-                            try await uploadRoutineToSupabase(routine)
-                        } catch {
-                            errorMessage = "Upload failed: \(error)"
-                        }
-                    }
-                    
+
+                    // the workout has to be read out here, not inside a Task. Tasks only start once
+                    // this closure has finished, and workoutSession.end() below has nil'd it by then
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {
-                        
+
                         let duration = Int(Date().timeIntervalSince(startDate))
-                        
+                        let historySnapshot = history
+
                         saveRoutineToHistory(workoutRoutine, duration, modelContext)
+
+                        // updates routine
                         routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }
+
+                        Task {
+                            do {
+                                try await uploadRoutineToSupabase(routine)
+                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration)
+                            } catch {
+                                print("History upload error: \(error)")
+                                errorMessage = "Upload failed: \(error)"
+                            }
+                        }
+
+                        Task {
+                            do {
+                                try await authManager.updateStreakAfterWorkout(history: historySnapshot)
+                            } catch {
+                                print("Streak update failed: \(error)")
+                                errorMessage = "Streak update failed: \(error)"
+                            }
+                        }
                     }
+
                     
                     workoutSession.end()
+
                     dismiss()
                 } label : {
                     Text("Log and update")
@@ -226,15 +256,37 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     // saves routine to history
-                    
+
+                    // saves to local storage, uploads to supabase, then updates the streak.
+                    // the workout has to be read out here, not inside a Task. Tasks only start once
+                    // this closure has finished, and workoutSession.end() below has nil'd it by then
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {
-                        
+
                         let duration = Int(Date().timeIntervalSince(startDate))
-                        
+                        let historySnapshot = history
+
                         saveRoutineToHistory(workoutRoutine, duration, modelContext)
+
+                        Task {
+                            do {
+                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration)
+                            } catch {
+                                print("Routine upload error: \(error)")
+                                errorMessage = "Upload failed: \(error)"
+                            }
+                        }
+
+                        Task {
+                            do {
+                                try await authManager.updateStreakAfterWorkout(history: historySnapshot)
+                            } catch {
+                                print("Streak update failed: \(error)")
+                                errorMessage = "Streak update failed: \(error)"
+                            }
+                        }
                     }
-                    
+
                     workoutSession.end()
                     dismiss()
                 } label : {
@@ -273,10 +325,13 @@ struct RoutineDuringWorkoutView: View {
                 let newExercise = Exercise(
                     name: finalName,
                     reps: [8],
+                    seconds: [0],
                     completedSets: [],
                     weights: [0],
                     restTime: 60,
-                    type: "lb",
+                    repsColumn: true,
+                    weightColumn: true,
+                    secsColumn: false,
                     order: workoutRoutine.exercises.count
                 )
                 
@@ -320,6 +375,39 @@ struct RoutineDuringWorkoutView: View {
             .presentationDetents([.height(180)])
             
         }
+        .sheet(isPresented: $showClearExercisesVerifactionWindow) {
+            VStack(spacing: 16) {
+                Text("Clear all exercises?")
+                    .font(.headline)
+                
+                Button {
+                    guard let workoutRoutine = workoutSession.workoutRoutine else { return }
+                    
+                    workoutRoutine.exercises = []
+                    
+                    showClearExercisesVerifactionWindow = false
+                    
+                } label: {
+                    Text("Clear")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Color.red)
+                .cornerRadius(12)
+                
+                Button {
+                    showClearExercisesVerifactionWindow = false
+                } label: {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(Color.black)
+                }
+                .background(Theme.grey)
+                .cornerRadius(12)
+            }
+            .padding()
+            .presentationDetents([.height(180)])
+        }
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
@@ -330,8 +418,10 @@ struct RoutineDuringWorkoutView: View {
 
 #Preview {
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], completedSets: [], weights: [10, 10, 10], restTime: 60, type: "lb")]))
+    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)]))
 
     return RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
         .environment(session)
+        .environment(AuthManager())
+        .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
 }

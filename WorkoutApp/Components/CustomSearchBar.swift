@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// the search bar. pass in the text you want passed by reference and make sure to add the focus state. also pass in the placeholder text
 struct CustomSearchBar: View {
     @Binding var text: String
     
