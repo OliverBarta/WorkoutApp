@@ -37,14 +37,14 @@ func formattedDate(_ date: Date) -> String {
     date.formatted(date: .abbreviated, time: .shortened)
 }
 
-// formats the sets for the workoutHistoryCard into "reps (if repsColumn) x weight (if weightColumn) lb x seconds (if secsColumn) sec"
-// Example "10 x 10 lb x 10 sec
+// formats the sets for the workoutHistoryCard into "reps (if repsColumn) x weight (if weightColumn) lb x time (if secsColumn)"
+// Example "10 x 10 lb x 01:30"
 func formattedSet(reps: Int, weight: Double, seconds: Int, repsColumn: Bool, weightColumn: Bool, secsColumn: Bool) -> String {
     var parts: [String] = []
 
     if repsColumn { parts.append("\(reps)") }
     if weightColumn { parts.append("\(formattedWeight(weight)) lb") }
-    if secsColumn { parts.append("\(seconds) sec") }
+    if secsColumn { parts.append(SecondsFormatted(seconds)) }
 
     return parts.joined(separator: " x ")
 }

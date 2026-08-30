@@ -15,19 +15,49 @@ struct ExerciseDuringWorkoutCard: View {
     @Environment(\.modelContext) private var modelContext
     let rowHeightValue: CGFloat = 61
     
+    @State private var timerFullscreen: Bool = false
+    @State private var editRestTimeView: Bool = false
+    @State private var pickerMinutes: Int = 0
+    @State private var pickerSeconds: Int = 0
+    
+    // the set the timer is currently effecting so if you log a time it will change the seconds there.
+    @State private var setIndexTimerAttatchedTo: Int = 0
+    
+    @State private var errorMessage: String = ""
+    
     var body: some View {
         VStack(spacing: 0) {
+            TopPopUp(message: $errorMessage)
             HStack {
                 Text(exercise.name)
                     .font(.headline)
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
+                Spacer()
+                
+                if exercise.secsColumn {
+                    Button {
+                        if exercise.reps.count == 0 {// if no sets
+                            errorMessage = "No sets to time"
+                        } else {
+                            timerFullscreen = true
+                        }
+                    } label : {
+                        Image(systemName: "clock")
+                    }
+                }
+                
                 Menu {
                     Toggle("Reps column", isOn: $exercise.repsColumn)
                     Toggle("Weight column", isOn: $exercise.weightColumn)
-                    Toggle("Seconds column", isOn: $exercise.secsColumn)
-
+                    Toggle("Time column", isOn: $exercise.secsColumn)
+                    Button {
+                        editRestTimeView = true
+                    } label: {
+                        Text("Edit rest time")
+                        Image(systemName: "clock")
+                    }
                     Button("Delete", role: .destructive) {
                         modelContext.delete(exercise)
                         workoutSession.removeExercise(exercise)
@@ -35,7 +65,7 @@ struct ExerciseDuringWorkoutCard: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
-                .frame(alignment: .trailing)
+                
             }
             
             
@@ -58,9 +88,9 @@ struct ExerciseDuringWorkoutCard: View {
                     }
                     if exercise.secsColumn {
                         Spacer()
-                        EditableStat(value: $exercise.seconds[index])
-                        Text("sec")
-                            .foregroundColor(.secondary)
+                        EditableTime(value: $exercise.seconds[index])
+                            .padding(.horizontal)
+                            .foregroundStyle(setIndexTimerAttatchedTo == index ? Theme.primary: Theme.oppositeBackground)
                     }
 
                     Spacer()
@@ -76,6 +106,8 @@ struct ExerciseDuringWorkoutCard: View {
                             exercise.completedSets.insert(index)
                         }
                         
+                        reCalculateSetIndexTimerAttachtedTo()
+                        
                     } label: {
                         Image(systemName: "checkmark.square.fill")
                             .font(.title2)
@@ -89,6 +121,8 @@ struct ExerciseDuringWorkoutCard: View {
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
                         exercise.removeSet(at: index)
+                        
+                        reCalculateSetIndexTimerAttachtedTo()
                     }
                     .labelStyle(.titleOnly)
                 }
@@ -103,26 +137,86 @@ struct ExerciseDuringWorkoutCard: View {
             
             Button {
                 exercise.addSet()
+                
+                reCalculateSetIndexTimerAttachtedTo()
             } label : {
                 Text("Add set")
                 Image(systemName: "plus")
             }
             .padding(.top, 10)
         }
+        .fullScreenCover(isPresented: $timerFullscreen) {
+            TimerFullscreen(secondsRecorded: $exercise.seconds[setIndexTimerAttatchedTo], attachedSet: setIndexTimerAttatchedTo+1)
+        }
+        .onChange(of: editRestTimeView) { _, isPresented in// sets the picker wheel variables to the current rest time
+            if isPresented {
+                pickerMinutes = exercise.restTime / 60
+                pickerSeconds = exercise.restTime % 60
+            }
+        }
+        .sheet(isPresented: $editRestTimeView) {// edit rest timer sheet
+            VStack {
+                Text("Edit rest time from \(SecondsFormatted(exercise.restTime))")
+                    .padding()
+                    .font(.headline)
+                
+                HStack(spacing: 0) {
+                    wheel(range: 0..<60, selection: $pickerMinutes, unit: "min")
+                    wheel(range: 0..<60, selection: $pickerSeconds, unit: "sec")
+                }
+                .frame(maxWidth: .infinity)
+                
+                Button {
+                    exercise.restTime = pickerMinutes*60 + pickerSeconds
+                    editRestTimeView = false
+                } label : {
+                    Text("Set rest time")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .padding(.horizontal)
+                
+                Button {
+                    editRestTimeView = false
+                } label : {
+                    Text("Cancel")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Color.red)
+                .padding(.horizontal)
+            }
+            .presentationDetents([.height(380)])
+        }
         .padding()
         .frame(maxWidth: .infinity)
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func reCalculateSetIndexTimerAttachtedTo() {
+        if exercise.completedSets.count == exercise.reps.count {// if all sets are done
+            setIndexTimerAttatchedTo = exercise.completedSets.count-1
+        } else {
+            for setIndex in exercise.reps.indices {
+                if !exercise.completedSets.contains(setIndex) {
+                    setIndexTimerAttatchedTo = setIndex
+                    break
+                }
+            }
+        }
     }
 }
 
 
 #Preview {
+    let exercise = Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
+    let routine = Routine(name: "Routine 1", exercises: [exercise])
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60)]))
-    
-    
-    return ExerciseDuringWorkoutCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60, order: 0)
-    )
-    .environment(session)
+    let _ = session.start(routine)
+
+    ExerciseDuringWorkoutCard(exercise: exercise)
+        .environment(session)
+        .modelContainer(for: [Routine.self, Exercise.self], inMemory: true)
 }
