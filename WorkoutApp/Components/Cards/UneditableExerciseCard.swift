@@ -13,7 +13,7 @@ import SwiftUI
 struct UneditableExerciseCard: View {
     let exercise: Exercise
     
-    private let rowHeight: CGFloat = 60
+    private let rowHeight: CGFloat = 50
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,14 +23,17 @@ struct UneditableExerciseCard: View {
                     .multilineTextAlignment(.leading)
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                
+                HStack {
+                    Text("\(SecondsFormatted(exercise.restTime))")
+                        .foregroundColor(.secondary)
+                        
+                    Text("rest")
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                }
             }
-            HStack {
-                Text("\(exercise.restTime)")
-                    .foregroundColor(.secondary)
-                    
-                Text("second rest timer")
-                    .foregroundColor(.secondary)
-            }
+            
             
             List {
                 ForEach(Array(exercise.reps.indices), id: \.self) { index in
@@ -52,9 +55,7 @@ struct UneditableExerciseCard: View {
                         }
                         if exercise.secsColumn {
                             Spacer()
-                            Text("\(exercise.seconds[index])")
-                            Text("sec")
-                                .foregroundColor(.secondary)
+                            Text("\(SecondsFormatted(exercise.seconds[index]))")
                         }
                     }
                     .listRowBackground(Color.clear)
@@ -81,6 +82,6 @@ struct UneditableExerciseCard: View {
 
 #Preview {
     UneditableExerciseCard(
-        exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)
+        exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,1230,0,0,10], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     )
 }

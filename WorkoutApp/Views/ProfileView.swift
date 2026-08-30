@@ -27,8 +27,11 @@ struct ProfileView: View {
     
     @State private var streakNumber: Int = 0
     
-    @State private var workoutHistory: [HistoryRow] = []
     
+    @State private var workoutHistory: [HistoryRow] = []
+    @State private var isLoadingMore = false
+    @State private var reachedEnd = false
+
     
     var body: some View {
         ScrollView {
@@ -99,18 +102,48 @@ struct ProfileView: View {
             }
             .scrollIndicators(.hidden)
 
+            Text("Routines: ")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .font(.headline)
+            
             if !routines.isEmpty {
-                Text("Routines: ")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .font(.subheadline)
-                    
                 ForEach(routines) { routine in
                         ExploreRoutineCard(routine: routine)
                 }
             } else {
-                Text("No routines")
+                Text("\(username) has no routines")
             }
+            
+            
+            Text("History: ")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .font(.headline)
+            
+            LazyVStack {
+                ForEach(workoutHistory) { HistoryItem in
+                    ExploreFeedCard(
+                        historyId: HistoryItem.id,
+                        userName: username,
+                        userID: givenId,
+                        dateCompleted: HistoryItem.updated_at,
+                        durationSeconds: HistoryItem.duration_seconds,
+                        routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                    )
+                        .onAppear {
+                            if HistoryItem.id == workoutHistory.last?.id {
+                                loadMoreHistory()
+                            }
+                        }
+                }
+                if isLoadingMore {
+                    ProgressView()
+                } else if workoutHistory.isEmpty {
+                    Text("\(username) has never worked out")
+                }
+            }
+
         }
         .task {
             await loadCounts()
@@ -120,7 +153,9 @@ struct ProfileView: View {
             await loadUsername()
 
             await loadIsFollowing()
-            
+
+            loadMoreHistory()
+
             do {
                 streakNumber = try await pullStreak(userId: givenId)
                 
@@ -190,6 +225,26 @@ struct ProfileView: View {
         }
     }
     
+    // a window of loading. It loads the first 10, then when the user scrolls to the end of the ten it loads from 10-20 and repeat
+    private func loadMoreHistory() {
+        guard !isLoadingMore, !reachedEnd else { return }
+        isLoadingMore = true
+        Task {
+            defer { isLoadingMore = false }
+            do {
+                let cursor = workoutHistory.last?.updated_at
+                // followingIds is empty so the feed is only this profile's own workouts
+                let next = try await pullFeed(userId: givenId, followingIds: [], before: cursor)
+                if next.count < 10 { reachedEnd = true }
+
+                workoutHistory.append(contentsOf: next)
+            } catch {
+                errorMessage = "Failed to load history: \(error)"
+                print("Failed to load history: \(error)")
+            }
+        }
+    }
+
     private func loadRoutines() async {
         do {
             routines = try await pullFullRoutines(givenId)

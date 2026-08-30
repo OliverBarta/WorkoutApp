@@ -58,12 +58,19 @@ extension Exercise {
         reps.remove(at: index)
         weights.remove(at: index)
         seconds.remove(at: index)
-
-        // completedSets holds set indexes, so everything after the removed set shifts down by one
-        completedSets = Set(completedSets.compactMap { completedIndex in
-            if completedIndex == index { return nil }
-            return completedIndex > index ? completedIndex - 1 : completedIndex
-        })
+        
+        // Adjusts the completedSets array based off removed set
+        var completedSetsTemp: Set<Int> = []
+        
+        for setNum in completedSets {
+            if setNum > index {
+                completedSetsTemp.insert(setNum-1)
+            } else if setNum < index {
+                completedSetsTemp.insert(setNum)
+            }
+        }
+        
+        completedSets = completedSetsTemp
     }
 }
 

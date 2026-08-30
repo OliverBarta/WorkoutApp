@@ -164,11 +164,14 @@ struct ExploreFeedCard: View {
                         
                         if commentCount != 0 {
                             ForEach(comments) { comment in
-                                HStack {
+                                HStack(alignment: .firstTextBaseline) {
                                     Text(comment.username)
-                                    
+                                        .fixedSize(horizontal: true, vertical: false)
+
                                     Text(comment.content)
                                         .foregroundStyle(Color.secondary)
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }

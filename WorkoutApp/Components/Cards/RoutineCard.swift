@@ -101,6 +101,7 @@ struct RoutineCard: View {
             VStack(spacing: 16) {
                 Text("Delete \"\(routine.name)?\"")
                     .font(.headline)
+                    .padding()
                 
                 Button {
                     // deletes routine from supabase
@@ -115,24 +116,23 @@ struct RoutineCard: View {
                     modelContext.delete(routine)
                 } label: {
                     Text("Delete")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.red)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.red)
                 
                 Button {
                     showDoneDialog = false
                 } label: {
                     Text("Cancel")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Theme.grey)
-                .cornerRadius(12)
+                .buttonStyle(.glass)
             }
             .padding()
-            .presentationDetents([.height(180)])
+            .presentationDetents([.height(230)])
             
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))

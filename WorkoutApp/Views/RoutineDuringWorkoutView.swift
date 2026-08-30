@@ -205,6 +205,7 @@ struct RoutineDuringWorkoutView: View {
             VStack(spacing: 16) {
                 Text("Log and update \"\(routine.name)\"?")
                     .font(.headline)
+                    .padding()
                 
                 Button {
                     // saves routine to history and updates the routine
@@ -248,11 +249,11 @@ struct RoutineDuringWorkoutView: View {
                     dismiss()
                 } label : {
                     Text("Log and update")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.green)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.green)
                 
                 Button {
                     // saves routine to history
@@ -291,11 +292,11 @@ struct RoutineDuringWorkoutView: View {
                     dismiss()
                 } label : {
                     Text("Log")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.yellow)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.yellow)
                 
                 Button {
                     
@@ -303,14 +304,14 @@ struct RoutineDuringWorkoutView: View {
                     dismiss()
                 } label : {
                     Text("Don't log or update")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.red)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.red)
             }
             .padding()
-            .presentationDetents([.height(270)])
+            .presentationDetents([.height(320)])
         }
         .alert("Enter a name for your new exercise", isPresented: $showingAddExerciseAlert) {
             TextField("Exercise Name", text: $newExerciseName)
@@ -348,6 +349,7 @@ struct RoutineDuringWorkoutView: View {
         .sheet(isPresented: $showEndWorkoutVerifactionWindow) {
             VStack(spacing: 16) {
                 Text("End workout without logging?")
+                    .padding()
                     .font(.headline)
                 
                 Button {
@@ -355,29 +357,30 @@ struct RoutineDuringWorkoutView: View {
                     dismiss()
                 } label: {
                     Text("End")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.red)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.red)
                 
                 Button {
                     showEndWorkoutVerifactionWindow = false
                 } label: {
                     Text("Cancel")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Theme.grey)
-                .cornerRadius(12)
+                .buttonStyle(.glass)
+                
             }
             .padding()
-            .presentationDetents([.height(180)])
+            .presentationDetents([.height(230)])
             
         }
         .sheet(isPresented: $showClearExercisesVerifactionWindow) {
             VStack(spacing: 16) {
                 Text("Clear all exercises?")
+                    .padding()
                     .font(.headline)
                 
                 Button {
@@ -389,24 +392,23 @@ struct RoutineDuringWorkoutView: View {
                     
                 } label: {
                     Text("Clear")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Color.red)
-                .cornerRadius(12)
+                .buttonStyle(.glassProminent)
+                .tint(Color.red)
                 
                 Button {
                     showClearExercisesVerifactionWindow = false
                 } label: {
                     Text("Cancel")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(Color.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
-                .background(Theme.grey)
-                .cornerRadius(12)
+                .buttonStyle(.glass)
             }
             .padding()
-            .presentationDetents([.height(180)])
+            .presentationDetents([.height(230)])
         }
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
