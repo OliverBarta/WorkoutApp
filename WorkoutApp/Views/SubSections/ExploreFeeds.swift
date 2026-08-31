@@ -51,7 +51,7 @@ struct FeedElementFollowing: View {
         }
         .frame(maxWidth: .infinity)
         .task {
-            followingIds = (try? await pullFollowingIds(userId)) ?? []
+            followingIds = (try? await theUserIdsXisFollowing(userId)) ?? []
             loadMore()
         }
     }

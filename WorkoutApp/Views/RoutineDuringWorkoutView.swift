@@ -425,5 +425,6 @@ struct RoutineDuringWorkoutView: View {
     return RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
         .environment(session)
         .environment(AuthManager())
+        .environment(AppSettings())
         .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
 }

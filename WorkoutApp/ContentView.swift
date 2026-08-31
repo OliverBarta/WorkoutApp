@@ -56,4 +56,5 @@ struct ContentView: View {
     ContentView()
         .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self], inMemory: true)
         .environment(WorkoutSession())
+        .environment(AppSettings())
 }

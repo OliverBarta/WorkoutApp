@@ -126,8 +126,8 @@ func pullUsername(_ userId: UUID) async throws -> String {
     return username
 }
 
-// pulls all the followers following the given userId and returns an array of there IDs
-func pullFollowingIds(_ userId: UUID) async throws -> [UUID] {
+// returns all the ids the given userId is following
+func theUserIdsXisFollowing(_ userId: UUID) async throws -> [UUID] {
     struct FollowingRow: Decodable { let following_id: UUID }
     let rows: [FollowingRow] = try await supabase
         .from("follows")
@@ -136,6 +136,18 @@ func pullFollowingIds(_ userId: UUID) async throws -> [UUID] {
         .execute()
         .value
     return rows.map { $0.following_id }
+}
+
+// returns all the ids following the given userId
+func theUserIdsXisBeingFollowedBy(_ userId: UUID) async throws -> [UUID] {
+    struct FollowerRow: Decodable { let follower_id: UUID }
+    let rows: [FollowerRow] = try await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("following_id", value: userId)
+        .execute()
+        .value
+    return rows.map { $0.follower_id }
 }
 
 struct HistoryRow: Decodable, Identifiable {

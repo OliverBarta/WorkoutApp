@@ -91,6 +91,7 @@ struct HistorySheet: View {
             }
             .padding(.top, 60)
         }
+        .scrollIndicators(.hidden)// hides the side scroll bar
     }
 }
 

@@ -28,8 +28,9 @@ func SecondsFormatted(_ seconds: Int) -> String {
 }
 
 // sets the weight number to display with at most 2 decimal places, but will try to use 0 decimal places unless the second or first decimal is non zero
-func formattedWeight(_ weight: Double) -> String {
-    weight.formatted(.number.precision(.fractionLength(0...2)))
+// the weight comes in as pounds, since that is how every weight is stored
+func formattedWeight(_ weight: Double, unit: WeightUnit) -> String {
+    unit.fromPounds(weight).formatted(.number.precision(.fractionLength(0...2)))
 }
 
 // formats a given date and returns it as a string -> "Aug 22, 2026 at 6:09 PM"
@@ -39,11 +40,11 @@ func formattedDate(_ date: Date) -> String {
 
 // formats the sets for the workoutHistoryCard into "reps (if repsColumn) x weight (if weightColumn) lb x time (if secsColumn)"
 // Example "10 x 10 lb x 01:30"
-func formattedSet(reps: Int, weight: Double, seconds: Int, repsColumn: Bool, weightColumn: Bool, secsColumn: Bool) -> String {
+func formattedSet(reps: Int, weight: Double, seconds: Int, repsColumn: Bool, weightColumn: Bool, secsColumn: Bool, unit: WeightUnit) -> String {
     var parts: [String] = []
 
     if repsColumn { parts.append("\(reps)") }
-    if weightColumn { parts.append("\(formattedWeight(weight)) lb") }
+    if weightColumn { parts.append("\(formattedWeight(weight, unit: unit)) \(unit.label)") }
     if secsColumn { parts.append(SecondsFormatted(seconds)) }
 
     return parts.joined(separator: " x ")

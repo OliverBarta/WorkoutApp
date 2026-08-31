@@ -12,6 +12,7 @@ import SwiftData
 // the exercise card for edit view
 struct ExerciseEditCard: View {
     @Bindable var exercise: Exercise
+    @Environment(AppSettings.self) private var appSettings
     @Environment(\.modelContext) private var modelContext
     private let rowHeight: CGFloat = 60
     
@@ -61,8 +62,8 @@ struct ExerciseEditCard: View {
                         }
                         if exercise.weightColumn {
                             Spacer()
-                            EditableStatDouble(value: $exercise.weights[index])
-                            Text("lb")
+                            EditableStatDouble(value: appSettings.weightBinding($exercise.weights[index]))
+                            Text(appSettings.weightUnit.label)
                                 .foregroundColor(.secondary)
                         }
                         if exercise.secsColumn {
@@ -81,6 +82,7 @@ struct ExerciseEditCard: View {
                 }
             }
             .listStyle(.plain)
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .scrollDisabled(true)
             .scrollContentBackground(.hidden)
             .listRowSpacing(0)
@@ -149,4 +151,5 @@ struct ExerciseEditCard: View {
     ExerciseEditCard(
         exercise: Exercise(name: "Dumbell Bicep curl", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     )
+    .environment(AppSettings())
 }

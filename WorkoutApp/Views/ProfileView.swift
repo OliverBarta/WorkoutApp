@@ -15,7 +15,7 @@ struct ProfileView: View {
     
     @Environment(AuthManager.self) private var authManager
     
-    let givenId: UUID
+    let givenId: UUID// id of profile being view
     
     @State private var routines: [Routine] = []
     @State private var username = ""
@@ -31,6 +31,9 @@ struct ProfileView: View {
     @State private var workoutHistory: [HistoryRow] = []
     @State private var isLoadingMore = false
     @State private var reachedEnd = false
+    
+    @State private var followingViewBeingShown = false
+    @State private var followerViewBeingShown = false
 
     
     var body: some View {
@@ -42,7 +45,7 @@ struct ProfileView: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 10) {
                     Button {
-
+                        followerViewBeingShown = true
                     } label : {
                         HStack(spacing: 0) {
                             Text("Followers: ")
@@ -57,7 +60,7 @@ struct ProfileView: View {
                     .buttonStyle(.plain)
 
                     Button {
-
+                        followingViewBeingShown = true
                     } label: {
                         HStack(spacing: 0) {
                             Text("Following: ")
@@ -121,7 +124,7 @@ struct ProfileView: View {
                 .padding(.horizontal)
                 .font(.headline)
             
-            LazyVStack {
+            LazyVStack {// loades 10 then loades 10 more when you get to the bottom
                 ForEach(workoutHistory) { HistoryItem in
                     ExploreFeedCard(
                         historyId: HistoryItem.id,
@@ -145,6 +148,7 @@ struct ProfileView: View {
             }
 
         }
+        .scrollIndicators(.hidden)// hides the side scroll bar
         .task {
             await loadCounts()
 
@@ -164,6 +168,12 @@ struct ProfileView: View {
                 print("Error pulling streak \(error)")
             }
             
+        }
+        .fullScreenCover(isPresented: $followingViewBeingShown) {
+            FollowingView(givenId: givenId, givenUsername: username)
+        }
+        .fullScreenCover(isPresented: $followerViewBeingShown) {
+            FollowerView(givenId: givenId, givenUsername: username)
         }
         .overlay {
             VStack {
@@ -282,10 +292,10 @@ struct ProfileView: View {
             print(error.localizedDescription)
         }
     }
-
 }
 
 #Preview {
     ProfileView(givenId: UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")!)
         .environment(AuthManager())
+        .environment(AppSettings())
 }

@@ -11,7 +11,9 @@ import SwiftUI
 struct WorkoutHistoryCard: View {
     
     let entry: WorkoutHistoryEntry
-    
+
+    @Environment(AppSettings.self) private var appSettings
+
     @State private var showSpectateView: Bool = false
     
     var body: some View {
@@ -44,7 +46,7 @@ struct WorkoutHistoryCard: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(0..<min(exercise.reps.count, exercise.weights.count, exercise.seconds.count), id: \.self) { index in
-                                    Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn))
+                                    Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn, unit: appSettings.weightUnit))
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
@@ -76,4 +78,5 @@ struct WorkoutHistoryCard: View {
             ]
         )
     )
+    .environment(AppSettings())
 }
