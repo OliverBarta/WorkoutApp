@@ -26,25 +26,30 @@ struct FeedElementFollowing: View {
     var body: some View {
         VStack {
             TopPopUp(message: $errorMessage)
-
-            LazyVStack {
-                ForEach(feed) { HistoryItem in
-                    ExploreFeedCard(
-                        historyId: HistoryItem.id,
-                        userName: usernames[HistoryItem.user_id] ?? "",
-                        userID: HistoryItem.user_id,
-                        dateCompleted: HistoryItem.updated_at,
-                        durationSeconds: HistoryItem.duration_seconds,
-                        routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
-                    )
+            if feed.isEmpty {
+                Text("No posts")
+                    .foregroundColor(.secondary)
+                    .padding(.top, 60)
+            } else {
+                LazyVStack {
+                    ForEach(feed) { HistoryItem in
+                        ExploreFeedCard(
+                            historyId: HistoryItem.id,
+                            userName: usernames[HistoryItem.user_id] ?? "",
+                            userID: HistoryItem.user_id,
+                            dateCompleted: HistoryItem.updated_at,
+                            durationSeconds: HistoryItem.duration_seconds,
+                            routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                        )
                         .onAppear {
                             if HistoryItem.id == feed.last?.id {
                                 loadMore()
                             }
                         }
-                }
-                if isLoadingMore {
-                    ProgressView()
+                    }
+                    if isLoadingMore {
+                        ProgressView()
+                    }
                 }
             }
 
@@ -101,24 +106,30 @@ struct FeedElementGlobal: View {
         VStack {
             TopPopUp(message: $errorMessage)
 
-            LazyVStack {
-                ForEach(feed) { HistoryItem in
-                    ExploreFeedCard(
-                        historyId: HistoryItem.id,
-                        userName: usernames[HistoryItem.user_id] ?? "",
-                        userID: HistoryItem.user_id,
-                        dateCompleted: HistoryItem.updated_at,
-                        durationSeconds: HistoryItem.duration_seconds,
-                        routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
-                    )
+            if feed.isEmpty {
+                Text("No posts")
+                    .foregroundColor(.secondary)
+                    .padding(.top, 60)
+            } else {
+                LazyVStack {
+                    ForEach(feed) { HistoryItem in
+                        ExploreFeedCard(
+                            historyId: HistoryItem.id,
+                            userName: usernames[HistoryItem.user_id] ?? "",
+                            userID: HistoryItem.user_id,
+                            dateCompleted: HistoryItem.updated_at,
+                            durationSeconds: HistoryItem.duration_seconds,
+                            routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                        )
                         .onAppear {
                             if HistoryItem.id == feed.last?.id {
                                 loadMore()
                             }
                         }
-                }
-                if isLoadingMore {
-                    ProgressView()
+                    }
+                    if isLoadingMore {
+                        ProgressView()
+                    }
                 }
             }
 
@@ -159,7 +170,7 @@ struct FeedElementGlobal: View {
 // This struct is in pulling functions
 //struct HistoryRow: Decodable, Identifiable {
 //    let id: UUID
-//    let routine_id: UUID
+//    let routine_id: UUID?
 //    let user_id: UUID
 //    let name: String
 //    let exercises: [ExerciseDTO]

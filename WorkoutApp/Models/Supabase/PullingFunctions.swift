@@ -152,7 +152,7 @@ func theUserIdsXisBeingFollowedBy(_ userId: UUID) async throws -> [UUID] {
 
 struct HistoryRow: Decodable, Identifiable {
     let id: UUID
-    let routine_id: UUID
+    let routine_id: UUID?
     let user_id: UUID
     let name: String
     let exercises: [ExerciseDTO]

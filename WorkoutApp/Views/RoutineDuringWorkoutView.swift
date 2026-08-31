@@ -16,6 +16,8 @@ struct RoutineDuringWorkoutView: View {
     @Environment(\.modelContext) private var modelContext
 
     @Environment(AuthManager.self) private var authManager
+    
+    @Environment(AppSettings.self) private var appSettings
 
     @Query(sort: \WorkoutHistoryEntry.dateCompleted, order: .reverse) private var history: [WorkoutHistoryEntry]
     
@@ -36,6 +38,11 @@ struct RoutineDuringWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     
     var percentSetsDone: CGFloat = 0.1
+    
+    @State private var showChangeAllRestTimes = false
+    
+    @State private var pickerMinutes: Int = 0
+    @State private var pickerSeconds: Int = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -70,8 +77,22 @@ struct RoutineDuringWorkoutView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    ForEach(sortedExercises) { exercise in
-                        ExerciseDuringWorkoutCard(exercise: exercise)
+                    if sortedExercises.isEmpty {
+                        Text("Add exercises by clicking either blue button above.")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 60)
+                            .padding(.horizontal)
+                    } else {
+                        ForEach(sortedExercises) { exercise in
+                            ExerciseDuringWorkoutCard(exercise: exercise)
+                        }
+                    }
+                    
+                    Button {
+                        showChangeAllRestTimes = true
+                    } label : {
+                        Text("Change all rest times")
+                        Image(systemName: "clock")
                     }
                     
                     Button(role: .destructive) {
@@ -309,6 +330,16 @@ struct RoutineDuringWorkoutView: View {
                 }
                 .buttonStyle(.glassProminent)
                 .tint(Color.red)
+                
+                Button {
+                    showDoneDialog = false
+                } label : {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .buttonStyle(.glass)
+                
             }
             .padding()
             .presentationDetents([.height(320)])
@@ -329,7 +360,7 @@ struct RoutineDuringWorkoutView: View {
                     seconds: [0],
                     completedSets: [],
                     weights: [0],
-                    restTime: 60,
+                    restTime: appSettings.defaultRestSeconds,
                     repsColumn: true,
                     weightColumn: true,
                     secsColumn: false,
@@ -345,6 +376,35 @@ struct RoutineDuringWorkoutView: View {
             Button("Cancel", role: .cancel) {
                 newExerciseName = ""
             }
+        }
+        .sheet(isPresented: $showChangeAllRestTimes) {
+            VStack {
+                HStack {
+                    wheel(range: 0..<60, selection: $pickerMinutes, unit: "min")
+                    wheel(range: 0..<60, selection: $pickerSeconds, unit: "sec")
+                }
+                
+                Button {
+                    ChangeAllRestTimes()
+                    showChangeAllRestTimes = false
+                } label: {
+                    Text("Change all rest times")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .buttonStyle(.glassProminent)
+                
+                Button {
+                    showChangeAllRestTimes = false
+                } label: {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .buttonStyle(.glass)
+            }
+            .padding()
+            .presentationDetents([.height(320)])
         }
         .sheet(isPresented: $showEndWorkoutVerifactionWindow) {
             VStack(spacing: 16) {
@@ -413,6 +473,21 @@ struct RoutineDuringWorkoutView: View {
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
+    }
+    
+    private func ChangeAllRestTimes() {
+        guard let exercises = workoutSession.workoutRoutine?.exercises else {
+            errorMessage = "Couldn't Change rest times"
+            return
+        }
+        
+        let newRestTime = 60*pickerMinutes + pickerSeconds
+        
+        for exercise in exercises {
+            exercise.restTime = newRestTime
+        }
+        
+        errorMessage = "All rest times set to \(SecondsFormatted(newRestTime))"
     }
         
 }

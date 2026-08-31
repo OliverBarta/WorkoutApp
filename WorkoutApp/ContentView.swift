@@ -22,9 +22,9 @@ struct ContentView: View {
                         Label("Home", systemImage: "house.fill")
                     }
                 
-                WorkoutView()
+                RoutineSelectorView()
                     .tabItem {
-                        Label("Workout", systemImage: "dumbbell.fill")
+                        Label("Routines", systemImage: "dumbbell.fill")
                     }
                 RunningView()
                     .tabItem {

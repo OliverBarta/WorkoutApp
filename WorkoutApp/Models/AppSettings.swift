@@ -41,15 +41,33 @@ enum WeightUnit: String, CaseIterable, Identifiable {
 class AppSettings {
 
     private static let weightUnitKey = "weightUnit"
+    private static let defaultRestSecondsKey = "defaultRestSeconds"
+    private static let timerDefaultKey = "timerDefault"
 
     var weightUnit: WeightUnit {
         didSet { UserDefaults.standard.set(weightUnit.rawValue, forKey: Self.weightUnitKey) }
+    }
+    
+    var defaultRestSeconds: Int {
+        didSet { UserDefaults.standard.set(defaultRestSeconds, forKey: Self.defaultRestSecondsKey) }
+    }
+    
+    var timerDefault: String {
+        didSet { UserDefaults.standard.set(timerDefault, forKey: Self.timerDefaultKey) }
     }
 
     init() {
         let stored = UserDefaults.standard.string(forKey: Self.weightUnitKey)
 
         weightUnit = stored.flatMap(WeightUnit.init(rawValue:)) ?? .pounds
+        
+        if let stored = UserDefaults.standard.object(forKey: Self.defaultRestSecondsKey) as? Int {
+            defaultRestSeconds = stored
+        } else {
+            defaultRestSeconds = 90// the default default rest seconds is 90
+        }
+        
+        timerDefault = "stopwatch"
     }
 
     // wraps a binding holding pounds so an input box reads and writes the unit the user picked

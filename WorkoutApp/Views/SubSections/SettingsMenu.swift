@@ -20,6 +20,12 @@ struct SettingsMenu: View {
     
     @Environment(\.dismiss) private var dismiss
     
+    @State private var pickerMinutes: Int = 0
+    @State private var pickerSeconds: Int = 0
+    
+    @State private var followingViewBeingShown = false
+    @State private var followerViewBeingShown = false
+    
     var body: some View {
         ScrollView {
             Rectangle()
@@ -31,17 +37,28 @@ struct SettingsMenu: View {
                     .font(.headline)
                 
                 Spacer()
-                Text("Followers: ")
-                    .font(.subheadline)
-                Text("\(followerCount)")
-                    .font(.headline)
+                
+                Button {
+                    followerViewBeingShown = true
+                } label : {
+                    Text("Followers: ")
+                        .font(.subheadline)
+                    Text("\(followerCount)")
+                        .font(.headline)
+                }
+                .buttonStyle(.glass)
                 
                 Spacer()
                 
-                Text("Following: ")
-                    .font(.subheadline)
-                Text("\(followingCount)")
-                    .font(.headline)
+                Button {
+                    followingViewBeingShown = true
+                } label : {
+                    Text("Following: ")
+                        .font(.subheadline)
+                    Text("\(followingCount)")
+                        .font(.headline)
+                }
+                .buttonStyle(.glass)
                 
             }
             .padding()
@@ -73,9 +90,22 @@ struct SettingsMenu: View {
                 }
                 .buttonStyle(.glassProminent)
             }
+            
+            HStack {
+                Text("Default rest time:")
+                    .font(.headline)
+                
+                Spacer()
+                
+                wheel(range: 0..<60, selection: $pickerMinutes, unit: "min")
+                wheel(range: 0..<60, selection: $pickerSeconds, unit: "sec")
+                
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
 
             HStack {
-                Text("Weight unit")
+                Text("Weight unit: ")
                     .font(.headline)
 
                 Spacer()
@@ -92,15 +122,25 @@ struct SettingsMenu: View {
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
             
             HStack {
-                Text("Default rest time")
+                Text("Timer default:")
                     .font(.headline)
-                
+
                 Spacer()
+
+                Picker("Timer default", selection: Bindable(appSettings).timerDefault) {
+                    Text("Stopwatch").tag("stopwatch")
+                    Text("timer").tag("timer")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 220)
             }
             .padding()
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
 
             Spacer()
+            
+            Text("These settings are not linked to the account they are linked to this device.")
+                .font(.caption)
         }
         .scrollIndicators(.hidden)// hides the side scroll bar
         .alert("Enter new username", isPresented: $showChangeUsername) {
@@ -116,8 +156,23 @@ struct SettingsMenu: View {
                 newUsername = ""
             }
         }
+        .onChange(of: pickerMinutes+pickerSeconds) {
+            appSettings.defaultRestSeconds = 60*pickerMinutes + pickerSeconds
+        }
         .task {
+            loadRestTime()
+            
             await loadCounts()
+        }
+        .fullScreenCover(isPresented: $followingViewBeingShown) {
+            if let userId = authManager.currentUserId, let username = authManager.currentUsername {
+                FollowingView(givenId: userId, givenUsername: username)
+            }
+        }
+        .fullScreenCover(isPresented: $followerViewBeingShown) {
+            if let userId = authManager.currentUserId, let username = authManager.currentUsername {
+                FollowerView(givenId: userId, givenUsername: username)
+            }
         }
         .overlay {
             VStack {
@@ -166,6 +221,11 @@ struct SettingsMenu: View {
             errorMessage = error.localizedDescription
             print(error.localizedDescription)
         }
+    }
+    
+    private func loadRestTime() {
+        pickerMinutes = appSettings.defaultRestSeconds/60
+        pickerSeconds = appSettings.defaultRestSeconds%60
     }
 }
 

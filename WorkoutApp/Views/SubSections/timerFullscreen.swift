@@ -14,8 +14,7 @@ struct TimerFullscreen: View {
     let attachedSet: Int
 
     @Environment(\.dismiss) private var dismiss
-
-    @State private var feedType: String = "stopwatch"
+    @Environment(AppSettings.self) private var appSettings
 
     // stopwatch state. times are tracked with dates so it stays accurate if the app is backgrounded
     @State private var stopwatchStartDate: Date?
@@ -43,7 +42,7 @@ struct TimerFullscreen: View {
             Text("Timer attached to set \(attachedSet)")
                 .headerStyle()
             
-            Picker("Feed", selection: $feedType) {
+            Picker("Feed", selection: Bindable(appSettings).timerDefault) {
                 Text("Stopwatch").tag("stopwatch")
                 Text("Timer").tag("timer")
             }
@@ -54,7 +53,7 @@ struct TimerFullscreen: View {
             TimelineView(.animation(paused: !(stopwatchRunning || timerRunning))) { context in
                 let now = context.date
 
-                if feedType == "stopwatch" {
+                if appSettings.timerDefault == "stopwatch" {
                     // the stopwatch has nothing to count down to, so it shows the digits on their own
                     dial(label: formattedStopwatch(stopwatchElapsed(at: now)))
                 } else {
@@ -145,7 +144,7 @@ struct TimerFullscreen: View {
 
     private var controls: some View {
         HStack {
-            if feedType == "stopwatch" {
+            if appSettings.timerDefault == "stopwatch" {
                 circleButton(title: "Reset", tint: Theme.grey, enabled: stopwatchElapsed(at: Date()) > 0) {
                     stopwatchStartDate = nil
                     stopwatchAccumulated = 0
@@ -211,7 +210,7 @@ struct TimerFullscreen: View {
     // saves whatever the current mode has counted back to the caller
     private var logButton: some View {
         Button {
-            if feedType == "stopwatch" {
+            if appSettings.timerDefault == "stopwatch" {
                 secondsRecorded = Int(stopwatchElapsed(at: Date()))
             } else {
                 // the timer logs the time that has actually been counted down, not what is left
@@ -262,4 +261,5 @@ struct TimerFullscreen: View {
     @Previewable @State var secondsRecorded: Int = 90
 
     TimerFullscreen(secondsRecorded: $secondsRecorded, attachedSet: 1)
+        .environment(AppSettings())
 }

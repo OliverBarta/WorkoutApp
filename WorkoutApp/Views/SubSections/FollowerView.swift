@@ -44,6 +44,8 @@ struct FollowerView: View {
             
             if usersToDisplay.isEmpty {
                 Text("\(givenUsername) has no followers")
+                    .foregroundColor(.secondary)
+                    .padding(.top, 60)
             } else if let userOperatingPhoneId = authManager.currentUserId {
                 ForEach(usersToDisplay) { userToDisplay in
                     if userToDisplay.id != userOperatingPhoneId {
