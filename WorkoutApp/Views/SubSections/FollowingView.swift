@@ -43,6 +43,8 @@ struct FollowingView: View {
             
             if usersToDisplay.isEmpty {
                 Text("\(givenUsername) isn't following anybody")
+                    .foregroundColor(.secondary)
+                    .padding(.top, 60)
             } else if let userOperatingPhoneId = authManager.currentUserId {
                 ForEach(usersToDisplay) { userToDisplay in
                     if userToDisplay.id != userOperatingPhoneId {

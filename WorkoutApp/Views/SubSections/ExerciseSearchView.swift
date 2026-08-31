@@ -13,6 +13,8 @@ struct ExerciseSearchView: View {
 
     @Environment(\.dismiss) private var dismiss
     
+    @Environment(AppSettings.self) private var appSettings // the default settings like default rest time and units
+    
     // if the search bar is focused or not
     @FocusState private var isSearchFocused: Bool
 
@@ -35,7 +37,7 @@ struct ExerciseSearchView: View {
                         seconds: [0],
                         completedSets: [],
                         weights: [0],
-                        restTime: 60,
+                        restTime: appSettings.defaultRestSeconds,
                         repsColumn: true,
                         weightColumn: true,
                         secsColumn: false,
@@ -79,4 +81,5 @@ struct ExerciseSearchView: View {
 
 #Preview {
     ExerciseSearchView(routine: Routine(name: "Routine 1"))
+        .environment(AppSettings())
 }

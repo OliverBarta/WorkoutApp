@@ -116,6 +116,8 @@ struct ProfileView: View {
                 }
             } else {
                 Text("\(username) has no routines")
+                    .foregroundColor(.secondary)
+                    .padding(.top, 60)
             }
             
             
@@ -144,6 +146,8 @@ struct ProfileView: View {
                     ProgressView()
                 } else if workoutHistory.isEmpty {
                     Text("\(username) has never worked out")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
                 }
             }
 

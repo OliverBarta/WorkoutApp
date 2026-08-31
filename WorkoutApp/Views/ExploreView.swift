@@ -74,7 +74,7 @@ struct ExploreView: View {
                         if filtered.isEmpty {
                             Text("No results")
                                 .foregroundColor(.secondary)
-                                .padding(.top, 100)
+                                .padding(.top, 60)
                         } else {
                             VStack(spacing: 8) {
                                 ForEach(filtered) { profile in

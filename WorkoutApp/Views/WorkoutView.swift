@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct WorkoutView: View {
+struct RoutineSelectorView: View {
     @Environment(\.modelContext) private var modelContext
     
     // query makes routines the same everywhere so just type this and the variable is the same
@@ -35,11 +35,17 @@ struct WorkoutView: View {
                 .buttonStyle(.glassProminent)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-                
-                ForEach(routines) { routine in
-                    RoutineCard(routine: routine, deletableCard: true)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
+                if routines.isEmpty {
+                    Text("No routines yet, create one by tapping the blue button above or by going to someones profile in Explore and copying one of their routines.")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                        .padding(.horizontal)
+                } else {
+                    ForEach(routines) { routine in
+                        RoutineCard(routine: routine, deletableCard: true)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
                 }
 
             }
@@ -47,7 +53,7 @@ struct WorkoutView: View {
             .frame(maxWidth: .infinity)
             .overlay {
                 VStack {
-                    Text("Workouts")
+                    Text("Routines")
                         .headerStyle()
                     Spacer()
                 }
@@ -57,7 +63,7 @@ struct WorkoutView: View {
 }
 
 #Preview {
-    WorkoutView()
+    RoutineSelectorView()
         .modelContainer(for: Routine.self, inMemory: true)
         .environment(WorkoutSession())
 }

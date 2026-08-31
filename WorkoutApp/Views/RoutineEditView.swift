@@ -13,6 +13,8 @@ struct RoutineEditView: View {
     
     @Environment(\.dismiss) private var dismiss
     
+    @Environment(AppSettings.self) private var appSettings
+    
     @State private var keyboardObserver = KeyboardObserver()
     
     @State private var showExerciseSearch = false
@@ -53,7 +55,7 @@ struct RoutineEditView: View {
                             seconds: [0],
                             completedSets: [],
                             weights: [0],
-                            restTime: 60,
+                            restTime: appSettings.defaultRestSeconds,
                             repsColumn: true,
                             weightColumn: true,
                             secsColumn: false,
@@ -68,16 +70,21 @@ struct RoutineEditView: View {
                     
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
-                ForEach(sortedExercises) { exercise in
-                    ExerciseEditCard(exercise: exercise)
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
-                    
+                if sortedExercises.isEmpty {
+                    Text("Add exercises by clicking either blue button above.")
+                        .foregroundColor(.secondary)
+                        .padding(.vertical, 60)
+                        .padding(.horizontal)
+                } else {
+                    ForEach(sortedExercises) { exercise in
+                        ExerciseEditCard(exercise: exercise)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                        
+                    }
+                    .padding(.top, 10)
                 }
-                .padding(.top, 10)
-                
             }
             
             .scrollIndicators(.hidden)// hides the side scroll bar

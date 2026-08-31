@@ -68,8 +68,7 @@ struct RoutineSpectateView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         
                         Button {
-                            // saves the routine to the users routines on the database and locally
-                            // database save
+                            // saves the routine to the users routines on the database and local save
                             Task {
                                 do {
                                     
