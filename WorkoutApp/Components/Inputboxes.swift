@@ -35,7 +35,9 @@ struct EditableStatDouble: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        TextField("", value: $value, format: .number)
+        // capped at 2 decimals because converting a weight into kilograms otherwise fills the
+        // field with a long trail of decimals
+        TextField("", value: $value, format: .number.precision(.fractionLength(0...2)))
             .keyboardType(.decimalPad)
             .multilineTextAlignment(.trailing)
             .focused($isFocused)

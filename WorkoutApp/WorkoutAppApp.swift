@@ -12,6 +12,7 @@ import SwiftData
 struct WorkoutAppApp: App {
     @State private var workoutSession = WorkoutSession()
     @State private var authManager = AuthManager()
+    @State private var appSettings = AppSettings()
 
     var body: some Scene {
         WindowGroup {
@@ -26,6 +27,7 @@ struct WorkoutAppApp: App {
             }
             .environment(workoutSession)
             .environment(authManager)
+            .environment(appSettings)
         }
         .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self])
     }

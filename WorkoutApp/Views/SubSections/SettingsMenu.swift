@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsMenu: View {
     
     @Environment(AuthManager.self) private var authManager
+    @Environment(AppSettings.self) private var appSettings
     
     @State private var newUsername = ""
     @State private var errorMessage: String = ""
@@ -20,93 +21,128 @@ struct SettingsMenu: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ZStack {
-            VStack {
+        ScrollView {
+            Rectangle()
+                .padding(.top, 35)
+                .opacity(0)
+            
+            HStack {
+                Text(authManager.currentUsername ?? "Guest")
+                    .font(.headline)
                 
-                HStack {
-                    Text(authManager.currentUsername ?? "Guest")
-                        .font(.headline)
-                    
-                    Spacer()
-                    Text("Followers: ")
-                        .font(.subheadline)
-                    Text("\(followerCount)")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Text("Following: ")
-                        .font(.subheadline)
-                    Text("\(followingCount)")
-                        .font(.headline)
-                    
-                }
-                .padding()
-                .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+                Spacer()
+                Text("Followers: ")
+                    .font(.subheadline)
+                Text("\(followerCount)")
+                    .font(.headline)
                 
-                HStack {
-                    Button {
-                        Task {
-                            do {
-                                try await authManager.signOut()
-                                
-                            } catch {
-                                errorMessage = "Sign out failed: \(error)"
-                                print("Sign out failed: \(error)")
-                            }
+                Spacer()
+                
+                Text("Following: ")
+                    .font(.subheadline)
+                Text("\(followingCount)")
+                    .font(.headline)
+                
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Button {
+                    Task {
+                        do {
+                            try await authManager.signOut()
+                            
+                        } catch {
+                            errorMessage = "Sign out failed: \(error)"
+                            print("Sign out failed: \(error)")
                         }
-                    } label : {
-                        Text("Sign out")
-                            .frame(maxWidth:. infinity)
                     }
-                    .buttonStyle(.glassProminent)
-                    .tint(.red)
-                    .frame(maxWidth:. infinity)
-                    
-                    Button {
-                        showChangeUsername = true
-                    } label : {
-                        Text("Change username")
-                            .frame(maxWidth:. infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .frame(maxWidth:. infinity)
+                } label : {
+                    Text("Sign out")
+                        .frame(maxWidth:. infinity)
                 }
-                .frame(maxWidth:. infinity)
+                .buttonStyle(.glassProminent)
+                .tint(.red)
+                
+                Button {
+                    showChangeUsername = true
+                } label : {
+                    Text("Change username")
+                        .frame(maxWidth:. infinity)
+                }
+                .buttonStyle(.glassProminent)
+            }
+
+            HStack {
+                Text("Weight unit")
+                    .font(.headline)
+
+                Spacer()
+
+                Picker("Weight unit", selection: Bindable(appSettings).weightUnit) {
+                    ForEach(WeightUnit.allCases) { unit in
+                        Text(unit.label).tag(unit)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 140)
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Text("Default rest time")
+                    .font(.headline)
                 
                 Spacer()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .alert("Enter new username", isPresented: $showChangeUsername) {
-                TextField("Exercise Name", text: $newUsername)
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+
+            Spacer()
+        }
+        .scrollIndicators(.hidden)// hides the side scroll bar
+        .alert("Enter new username", isPresented: $showChangeUsername) {
+            TextField("Exercise Name", text: $newUsername)
+            
+            Button("Update username") {
                 
-                Button("Update username") {
-                    
-                    Task { await save() }
-                    
-                }
+                Task { await save() }
                 
-                Button("Cancel", role: .cancel) {
-                    newUsername = ""
-                }
-            }
-            .task {
-                await loadCounts()
             }
             
+            Button("Cancel", role: .cancel) {
+                newUsername = ""
+            }
+        }
+        .task {
+            await loadCounts()
+        }
+        .overlay {
             VStack {
+                ZStack {
+                    Text("Settings")
+                        .headerStyle()
+                    
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.backward")
+                            .padding(5)
+                    }
+                    .buttonStyle(.glass)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                }
+                
+                
                 TopPopUp(message: $errorMessage)
                 
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Close")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.glassProminent)
-                .padding(.horizontal)
                 
+                Spacer()
             }
+            
         }
         
     }
@@ -137,4 +173,5 @@ struct SettingsMenu: View {
 #Preview {
     SettingsMenu()
         .environment(AuthManager())
+        .environment(AppSettings())
 }

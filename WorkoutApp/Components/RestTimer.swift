@@ -20,7 +20,6 @@ struct RestTimer: View {
            let exerciseBeingTimed = workoutSession.exerciseBeingTimed {
             GeometryReader { geometry in
                 
-//                let barWidth = (geometry.size.width - 32) * workoutSession.getCompletedRestTimePercentage()
                 let rawWidth = (geometry.size.width - 32) * workoutSession.getCompletedRestTimePercentage()
                 let barWidth = rawWidth.isFinite ? max(0, rawWidth) : 0
                 let backgroundWidth = max(0, geometry.size.width - 32)

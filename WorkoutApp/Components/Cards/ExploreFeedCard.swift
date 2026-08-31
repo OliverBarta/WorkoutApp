@@ -23,6 +23,7 @@ struct ExploreFeedCard: View {
     let routine: Routine
 
     @Environment(AuthManager.self) private var authManager
+    @Environment(AppSettings.self) private var appSettings
     
     @State private var showSpectateView: Bool = false
     @State private var showProfileView: Bool = false
@@ -81,7 +82,7 @@ struct ExploreFeedCard: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(0..<min(exercise.reps.count, exercise.weights.count, exercise.seconds.count), id: \.self) { index in
-                                    Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn))
+                                    Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn, unit: appSettings.weightUnit))
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
@@ -262,4 +263,5 @@ struct ExploreFeedCard: View {
 #Preview {
     ExploreFeedCard(historyId: UUID(uuidString: "119dfeae-9d07-4818-892f-98f4617f3c49")!, userName: "Oliver", userID: UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")!, dateCompleted: Date(), durationSeconds: 60, routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60),Exercise(name: "Squat", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60)]))
         .environment(AuthManager())
+        .environment(AppSettings())
 }

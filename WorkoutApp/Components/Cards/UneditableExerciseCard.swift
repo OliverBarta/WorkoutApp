@@ -12,7 +12,9 @@ import SwiftUI
 // this is for when ur viewing someone else's workout
 struct UneditableExerciseCard: View {
     let exercise: Exercise
-    
+
+    @Environment(AppSettings.self) private var appSettings
+
     private let rowHeight: CGFloat = 50
 
     var body: some View {
@@ -49,8 +51,8 @@ struct UneditableExerciseCard: View {
                         }
                         if exercise.weightColumn {
                             Spacer()
-                            Text("\(formattedWeight(exercise.weights[index]))")
-                            Text("lb")
+                            Text("\(formattedWeight(exercise.weights[index], unit: appSettings.weightUnit))")
+                            Text(appSettings.weightUnit.label)
                                 .foregroundColor(.secondary)
                         }
                         if exercise.secsColumn {
@@ -68,6 +70,7 @@ struct UneditableExerciseCard: View {
                 }
             }
             .listStyle(.plain)
+            .scrollIndicators(.hidden)// hides the side scroll bar
             .scrollDisabled(true)
             .scrollContentBackground(.hidden)
             .listRowSpacing(0)
@@ -84,4 +87,5 @@ struct UneditableExerciseCard: View {
     UneditableExerciseCard(
         exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,1230,0,0,10], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     )
+    .environment(AppSettings())
 }

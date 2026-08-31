@@ -203,4 +203,5 @@ struct ProfileListRow: View {
 
     return ExploreView()
         .environment(authManager)
+        .environment(AppSettings())
 }

@@ -19,6 +19,9 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showHistory = false
     @State private var showStreakInfo = false
+    @State private var showUserProfile = false
+    
+    @State private var errorMessage = ""
 
     var body: some View {
         VStack {
@@ -91,9 +94,8 @@ struct HomeView: View {
             }
             .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxWidth: .infinity)
-            .sheet(isPresented: $showSettings) {
+            .fullScreenCover(isPresented: $showSettings) {
                 SettingsMenu()
-                    .presentationCornerRadius(12)// makes the sheet 12 radius corners
             }
             .sheet(isPresented: $showHistory) {
                 HistorySheet()
@@ -103,7 +105,11 @@ struct HomeView: View {
                 StreakSheet()
                     .presentationDetents([.height(380)])
             }
-            
+            .fullScreenCover(isPresented: $showUserProfile) {
+                if let userId = authManager.currentUserId {
+                    ProfileView(givenId: userId)
+                }
+            }
             .overlay {
                 VStack {
                     ZStack {
@@ -123,7 +129,21 @@ struct HomeView: View {
                                     .padding(.trailing, 12)
                             }
                             .glassEffect()
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Spacer()
+                            
+                            Button {
+                                if authManager.currentUserId != nil {
+                                    showUserProfile = true
+                                } else {
+                                    errorMessage = "Error: Not signed in"
+                                }
+                            } label : {
+                                Image(systemName: "person")
+                                    .foregroundColor(Theme.oppositeBackground)
+                                    .padding(12)
+                            }
+                            .glassEffect()
                             
                             Button {
                                 showSettings = true
@@ -133,13 +153,14 @@ struct HomeView: View {
                                     .padding(12)
                             }
                             .glassEffect()
-                            .frame(maxWidth: .infinity, alignment: .trailing)
                         }
                         .padding(.horizontal)
                         
                         Text("Home")
                             .headerStyle()
                     }
+                    
+                    TopPopUp(message: $errorMessage, addSpaceUnder: false)
                     
                     Spacer()
                     
@@ -154,4 +175,5 @@ struct HomeView: View {
         .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
         .environment(WorkoutSession())
         .environment(AuthManager())
+        .environment(AppSettings())
 }
