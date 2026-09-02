@@ -43,6 +43,11 @@ class AppSettings {
     private static let weightUnitKey = "weightUnit"
     private static let defaultRestSecondsKey = "defaultRestSeconds"
     private static let timerDefaultKey = "timerDefault"
+    private static let routineNumberKey = "routineNumber"
+    private static let addExerciseButtonsTopKey = "addExerciseButtonsTop"
+    private static let addExerciseButtonsBotKey = "addExerciseButtonsBot"
+    private static let addExerciseOnKey = "addExerciseOn"
+    private static let personalBestsKey = "personalBests"
 
     var weightUnit: WeightUnit {
         didSet { UserDefaults.standard.set(weightUnit.rawValue, forKey: Self.weightUnitKey) }
@@ -54,6 +59,26 @@ class AppSettings {
     
     var timerDefault: String {
         didSet { UserDefaults.standard.set(timerDefault, forKey: Self.timerDefaultKey) }
+    }
+    
+    var routineNumber: Int {
+        didSet { UserDefaults.standard.set(routineNumber, forKey: Self.routineNumberKey) }
+    }
+    
+    var addExerciseButtonsTop: Bool {
+        didSet { UserDefaults.standard.set(addExerciseButtonsTop, forKey: Self.addExerciseButtonsTopKey) }
+    }
+    
+    var addExerciseButtonsBot: Bool {
+        didSet { UserDefaults.standard.set(addExerciseButtonsBot, forKey: Self.addExerciseButtonsBotKey) }
+    }
+    
+    var addExerciseOn: String {
+        didSet { UserDefaults.standard.set(addExerciseOn, forKey: Self.addExerciseOnKey) }
+    }
+    
+    var personalBests: [String: Double] {
+        didSet { UserDefaults.standard.set(personalBests, forKey: Self.personalBestsKey) }
     }
 
     init() {
@@ -68,6 +93,16 @@ class AppSettings {
         }
         
         timerDefault = "stopwatch"
+        
+        routineNumber = 1
+        
+        addExerciseButtonsTop = true
+        
+        addExerciseButtonsBot = false
+        
+        addExerciseOn = "bottom"
+        
+        personalBests = [:]
     }
 
     // wraps a binding holding pounds so an input box reads and writes the unit the user picked

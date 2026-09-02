@@ -136,6 +136,40 @@ struct SettingsMenu: View {
             }
             .padding()
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Toggle(isOn: Bindable(appSettings).addExerciseButtonsTop) {
+                    Text("Add exercise buttons on top:")
+                        .font(.headline)
+                }
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Toggle(isOn: Bindable(appSettings).addExerciseButtonsBot) {
+                    Text("Add exercise buttons on bottom:")
+                        .font(.headline)
+                }
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Text("Add exercise on:")
+                    .font(.headline)
+
+                Spacer()
+
+                Picker("Add exercise on", selection: Bindable(appSettings).addExerciseOn) {
+                    Text("Bottom").tag("bottom")
+                    Text("Top").tag("top")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 220)
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
 
             Spacer()
             

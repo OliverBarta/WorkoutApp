@@ -43,7 +43,7 @@ struct RoutineDuringWorkoutView: View {
     
     @State private var pickerMinutes: Int = 0
     @State private var pickerSeconds: Int = 0
-
+    
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -52,54 +52,81 @@ struct RoutineDuringWorkoutView: View {
                     Rectangle()
                         .padding(.top, 100)
                         .opacity(0)
-                    
-                    HStack(spacing: 2) {
-                        Button {
-                            showExerciseSearch = true
-                        } label : {
-                            HStack {
-                                Text("Exercise")
-                                Image(systemName: "plus")
+                    if appSettings.addExerciseButtonsTop {
+                        HStack(spacing: 2) {
+                            Button {
+                                showExerciseSearch = true
+                            } label : {
+                                HStack {
+                                    Text("Exercise")
+                                    Image(systemName: "plus")
+                                }
                             }
-                        }
-                        .buttonStyle(.glassProminent)
-                        .padding(.horizontal)
-                        
-                        Button {
-                            showingAddExerciseAlert = true
-                        } label : {
-                            HStack {
-                                Text("Custom exercise")
-                                Image(systemName: "plus")
+                            .buttonStyle(.glassProminent)
+                            .padding(.horizontal)
+                            
+                            Button {
+                                showingAddExerciseAlert = true
+                            } label : {
+                                HStack {
+                                    Text("Custom exercise")
+                                    Image(systemName: "plus")
+                                }
                             }
+                            .buttonStyle(.glassProminent)
                         }
-                        .buttonStyle(.glassProminent)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     
                     if sortedExercises.isEmpty {
-                        Text("Add exercises by clicking either blue button above.")
-                            .foregroundColor(.secondary)
-                            .padding(.vertical, 60)
-                            .padding(.horizontal)
+                        if appSettings.addExerciseButtonsTop || appSettings.addExerciseButtonsBot {
+                            Text("Add exercises by clicking either \"Exercise +\" button.")
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 60)
+                                .padding(.horizontal)
+                        } else {
+                            Text("Enable the add exercise buttons in settings.")
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 60)
+                                .padding(.horizontal)
+                        }
                     } else {
                         ForEach(sortedExercises) { exercise in
                             ExerciseDuringWorkoutCard(exercise: exercise)
                         }
                     }
                     
+                    if appSettings.addExerciseButtonsBot {
+                        HStack(spacing: 2) {
+                            Button {
+                                showExerciseSearch = true
+                            } label : {
+                                HStack {
+                                    Text("Exercise")
+                                    Image(systemName: "plus")
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .padding(.horizontal)
+                            
+                            Button {
+                                showingAddExerciseAlert = true
+                            } label : {
+                                HStack {
+                                    Text("Custom exercise")
+                                    Image(systemName: "plus")
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
                     Button {
                         showChangeAllRestTimes = true
                     } label : {
-                        Text("Change all rest times")
+                        Text("Change all rest times for this routine")
                         Image(systemName: "clock")
-                    }
-                    
-                    Button(role: .destructive) {
-                        showEndWorkoutVerifactionWindow = true
-                    } label : {
-                        Text("End workout without logging")
-                        Image(systemName: "trash")
                     }
                     
                     Button(role: .destructive) {
@@ -108,6 +135,14 @@ struct RoutineDuringWorkoutView: View {
                         Text("Clear all exercises")
                         Image(systemName: "trash")
                     }
+                    
+                    Button(role: .destructive) {
+                        showEndWorkoutVerifactionWindow = true
+                    } label : {
+                        Text("End workout without logging or updating")
+                        Image(systemName: "trash")
+                    }
+                    
                 }
                 .padding(.bottom, 100)
                 
@@ -231,8 +266,6 @@ struct RoutineDuringWorkoutView: View {
                 Button {
                     // saves routine to history and updates the routine
 
-                    // the workout has to be read out here, not inside a Task. Tasks only start once
-                    // this closure has finished, and workoutSession.end() below has nil'd it by then
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {
 
@@ -263,11 +296,21 @@ struct RoutineDuringWorkoutView: View {
                             }
                         }
                     }
-
-                    
-                    workoutSession.end()
-
-                    dismiss()
+                    // ends workout and records the pbs
+                    Task {
+                        do {
+                            if let userId = authManager.currentUserId {
+                                try await workoutSession.endAndRecordPBs(appSettings, userId: userId)
+                                dismiss()
+                            } else {
+                                print("Not signed in")
+                                errorMessage = "Not Signed in"
+                            }
+                        } catch {
+                            print("Supabase PB upload failed: \(error)")
+                            errorMessage = "Supabase PB upload failed"
+                        }
+                    }
                 } label : {
                     Text("Log and update")
                         .frame(maxWidth: .infinity)
@@ -280,8 +323,6 @@ struct RoutineDuringWorkoutView: View {
                     // saves routine to history
 
                     // saves to local storage, uploads to supabase, then updates the streak.
-                    // the workout has to be read out here, not inside a Task. Tasks only start once
-                    // this closure has finished, and workoutSession.end() below has nil'd it by then
                     if let workoutRoutine = workoutSession.workoutRoutine,
                        let startDate = workoutSession.workoutStartDate {
 
@@ -308,9 +349,22 @@ struct RoutineDuringWorkoutView: View {
                             }
                         }
                     }
-
-                    workoutSession.end()
-                    dismiss()
+                    
+                    // ends workout and records the pbs
+                    Task {
+                        do {
+                            if let userId = authManager.currentUserId {
+                                try await workoutSession.endAndRecordPBs(appSettings, userId: userId)
+                                dismiss()
+                            } else {
+                                print("Not signed in")
+                                errorMessage = "Not Signed in"
+                            }
+                        } catch {
+                            print("Supabase PB upload failed: \(error)")
+                            errorMessage = "Supabase PB upload failed"
+                        }
+                    }
                 } label : {
                     Text("Log")
                         .frame(maxWidth: .infinity)
@@ -321,7 +375,7 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     
-                    workoutSession.end()
+                    workoutSession.endWithoutRecordingPbs()
                     dismiss()
                 } label : {
                     Text("Don't log or update")
@@ -342,7 +396,7 @@ struct RoutineDuringWorkoutView: View {
                 
             }
             .padding()
-            .presentationDetents([.height(320)])
+            .presentationDetents([.height(390)])
         }
         .alert("Enter a name for your new exercise", isPresented: $showingAddExerciseAlert) {
             TextField("Exercise Name", text: $newExerciseName)
@@ -354,6 +408,18 @@ struct RoutineDuringWorkoutView: View {
                 
                 guard let workoutRoutine = workoutSession.workoutRoutine else { return }
                 
+                var orderOfNewExercise = 0
+                
+                if appSettings.addExerciseOn == "bottom" {
+                    orderOfNewExercise = workoutRoutine.exercises.count
+                } else {
+                    orderOfNewExercise = 0
+                    
+                    for exercise in workoutRoutine.exercises {
+                        exercise.order += 1
+                    }
+                }
+                
                 let newExercise = Exercise(
                     name: finalName,
                     reps: [8],
@@ -364,7 +430,7 @@ struct RoutineDuringWorkoutView: View {
                     repsColumn: true,
                     weightColumn: true,
                     secsColumn: false,
-                    order: workoutRoutine.exercises.count
+                    order: orderOfNewExercise
                 )
                 
                 workoutRoutine.exercises.append(newExercise)
@@ -408,12 +474,12 @@ struct RoutineDuringWorkoutView: View {
         }
         .sheet(isPresented: $showEndWorkoutVerifactionWindow) {
             VStack(spacing: 16) {
-                Text("End workout without logging?")
+                Text("End workout without logging or updating?")
                     .padding()
                     .font(.headline)
                 
                 Button {
-                    workoutSession.end()
+                    workoutSession.endWithoutRecordingPbs()
                     dismiss()
                 } label: {
                     Text("End")
@@ -473,8 +539,27 @@ struct RoutineDuringWorkoutView: View {
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
+        // the personal best celebration
+        .overlay {
+            ZStack {
+                if let personalBest = workoutSession.newPersonalBest {
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .onTapGesture {
+                            workoutSession.newPersonalBest = nil
+                        }
+
+                    CelebrationAlert(exerciseName: personalBest.exerciseName, weight: personalBest.weight) {
+                        workoutSession.newPersonalBest = nil
+                    }
+                    .transition(.scale(scale: 1.15).combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: workoutSession.newPersonalBest)
+        }
     }
-    
+
     private func ChangeAllRestTimes() {
         guard let exercises = workoutSession.workoutRoutine?.exercises else {
             errorMessage = "Couldn't Change rest times"
@@ -489,7 +574,6 @@ struct RoutineDuringWorkoutView: View {
         
         errorMessage = "All rest times set to \(SecondsFormatted(newRestTime))"
     }
-        
 }
 
 

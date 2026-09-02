@@ -38,43 +38,67 @@ struct RoutineEditView: View {
                 CustomSearchBar(text: $routine.name, isFocused: $isRoutineNameEditorFocused, placeHolderText: "Routine name")
                     .padding()
                 
-                HStack {
-                    Button {
-                        showExerciseSearch = true
-                    } label : {
-                        Text("Exercise")
-                        Image(systemName: "plus")
-                    }
-                    .padding(.horizontal)
-                    .buttonStyle(.glassProminent)
-                    
-                    Button {
-                        let newExercise = Exercise(
-                            name: "New Exercise",
-                            reps: [8],
-                            seconds: [0],
-                            completedSets: [],
-                            weights: [0],
-                            restTime: appSettings.defaultRestSeconds,
-                            repsColumn: true,
-                            weightColumn: true,
-                            secsColumn: false,
-                            order: routine.exercises.count
-                        )
-                        routine.exercises.append(newExercise)
-                    } label : {
-                        Text("Custom Exercise")
-                        Image(systemName: "plus")
-                    }
-                    .buttonStyle(.glassProminent)
-                    
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                if sortedExercises.isEmpty {
-                    Text("Add exercises by clicking either blue button above.")
-                        .foregroundColor(.secondary)
-                        .padding(.vertical, 60)
+                
+                if appSettings.addExerciseButtonsTop {
+                    HStack {
+                        Button {
+                            showExerciseSearch = true
+                        } label : {
+                            Text("Exercise")
+                            Image(systemName: "plus")
+                        }
                         .padding(.horizontal)
+                        .buttonStyle(.glassProminent)
+                        
+                        Button {
+                            var orderOfNewExercise = 0
+                            
+                            if appSettings.addExerciseOn == "bottom" {
+                                orderOfNewExercise = routine.exercises.count
+                            } else {
+                                orderOfNewExercise = 0
+                                
+                                for exercise in routine.exercises {
+                                    exercise.order += 1
+                                }
+                            }
+                            
+                            let newExercise = Exercise(
+                                name: "New Exercise",
+                                reps: [8],
+                                seconds: [0],
+                                completedSets: [],
+                                weights: [0],
+                                restTime: appSettings.defaultRestSeconds,
+                                repsColumn: true,
+                                weightColumn: true,
+                                secsColumn: false,
+                                order: orderOfNewExercise
+                            )
+                            
+                            routine.exercises.append(newExercise)
+                        } label : {
+                            Text("Custom Exercise")
+                            Image(systemName: "plus")
+                        }
+                        .buttonStyle(.glassProminent)
+                        
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                if sortedExercises.isEmpty {
+                    if appSettings.addExerciseButtonsTop || appSettings.addExerciseButtonsBot {
+                        Text("Add exercises by clicking either \"Exercise +\" button.")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 60)
+                            .padding(.horizontal)
+                    } else {
+                        Text("Enable the exercise buttons in settings.")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 60)
+                            .padding(.horizontal)
+                    }
                 } else {
                     ForEach(sortedExercises) { exercise in
                         ExerciseEditCard(exercise: exercise)
@@ -84,6 +108,41 @@ struct RoutineEditView: View {
                         
                     }
                     .padding(.top, 10)
+                }
+                
+                if appSettings.addExerciseButtonsBot {
+                    HStack {
+                        Button {
+                            showExerciseSearch = true
+                        } label : {
+                            Text("Exercise")
+                            Image(systemName: "plus")
+                        }
+                        .padding(.horizontal)
+                        .buttonStyle(.glassProminent)
+                        
+                        Button {
+                            let newExercise = Exercise(
+                                name: "New Exercise",
+                                reps: [8],
+                                seconds: [0],
+                                completedSets: [],
+                                weights: [0],
+                                restTime: appSettings.defaultRestSeconds,
+                                repsColumn: true,
+                                weightColumn: true,
+                                secsColumn: false,
+                                order: routine.exercises.count
+                            )
+                            routine.exercises.append(newExercise)
+                        } label : {
+                            Text("Custom Exercise")
+                            Image(systemName: "plus")
+                        }
+                        .buttonStyle(.glassProminent)
+                        
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             
