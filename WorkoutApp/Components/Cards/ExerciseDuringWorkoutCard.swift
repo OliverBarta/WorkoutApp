@@ -14,6 +14,7 @@ struct ExerciseDuringWorkoutCard: View {
     @Environment(WorkoutSession.self) private var workoutSession
     @Environment(AppSettings.self) private var appSettings
     @Environment(\.modelContext) private var modelContext
+    
     let rowHeightValue: CGFloat = 61
     
     @State private var timerFullscreen: Bool = false
@@ -26,6 +27,9 @@ struct ExerciseDuringWorkoutCard: View {
     
     @State private var errorMessage: String = ""
     
+    @State private var personalBest: Double = 0
+    @State private var personalBestIndex: Int = -1// the index of a completed set that has the personal best weight (-1 if no sets have that)
+
     var body: some View {
         VStack(spacing: 0) {
             TopPopUp(message: $errorMessage)
@@ -96,33 +100,48 @@ struct ExerciseDuringWorkoutCard: View {
 
                     Spacer()
                     
+                    // complete set button
                     Button {
                         if exercise.completedSets.contains(index) {
                             if workoutSession.exerciseBeingTimed == exercise {
                                 workoutSession.stopRestTimer()
                             }
+                            
                             exercise.completedSets.remove(index)
+
+                            calculatePersonalBest()
+
                         } else {
                             workoutSession.startRestTimer(exercise)
                             exercise.completedSets.insert(index)
+
+                            // start personal best animation and set local PB variables
+                            if exercise.weights[index] > personalBest {
+                                personalBest = exercise.weights[index]
+                                personalBestIndex = index
+
+                                workoutSession.newPersonalBest = PersonalBest(exerciseName: exercise.name, weight: personalBest)
+                            }
                         }
-                        
+
                         reCalculateSetIndexTimerAttachtedTo()
-                        
+
                     } label: {
                         Image(systemName: "checkmark.square.fill")
                             .font(.title2)
-                            .foregroundStyle(.green)
+                            .foregroundStyle((exercise.weights[index] > personalBest && !exercise.completedSets.contains(index)) || personalBestIndex == index ? Theme.gold : Color.green)// gold if this set would beat the personal best, green otherwise
                             .symbolRenderingMode(.hierarchical)
                             .frame(maxWidth: 20)
                     }
                     .buttonStyle(.plain)
                 }
-                .listRowBackground(exercise.completedSets.contains(index) ? Theme.checkedSetGreen : Color.clear)
+                .listRowBackground(exercise.completedSets.contains(index) ? (personalBestIndex == index ? Theme.checkedSetGold : Theme.checkedSetGreen) : Color.clear)// gold if this is the personal best and completed, green if completed and not PB, clear otherwise
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
                         exercise.removeSet(at: index)
-                        
+
+                        calculatePersonalBest()
+
                         reCalculateSetIndexTimerAttachtedTo()
                     }
                     .labelStyle(.titleOnly)
@@ -146,6 +165,13 @@ struct ExerciseDuringWorkoutCard: View {
                 Image(systemName: "plus")
             }
             .padding(.top, 10)
+        }
+        .task {
+            calculatePersonalBest()
+        }
+        // a weight the user types can knock the record down or push another completed set past it
+        .onChange(of: exercise.weights) {
+            calculatePersonalBest()
         }
         .fullScreenCover(isPresented: $timerFullscreen) {
             TimerFullscreen(secondsRecorded: $exercise.seconds[setIndexTimerAttatchedTo], attachedSet: setIndexTimerAttatchedTo+1)
@@ -197,6 +223,19 @@ struct ExerciseDuringWorkoutCard: View {
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
     }
     
+    // calculates personalBest (the weight) and personalBestIndex (the set that personalBest was acheived)
+    private func calculatePersonalBest() {
+        personalBest = (appSettings.personalBests[exercise.name] ?? 0)
+        personalBestIndex = -1
+
+        for setIndex in exercise.completedSets {
+            if personalBest < exercise.weights[setIndex] {
+                personalBest = exercise.weights[setIndex]
+                personalBestIndex = setIndex
+            }
+        }
+    }
+
     private func reCalculateSetIndexTimerAttachtedTo() {
         if exercise.completedSets.count == exercise.reps.count {// if all sets are done
             setIndexTimerAttatchedTo = exercise.completedSets.count-1
@@ -213,7 +252,7 @@ struct ExerciseDuringWorkoutCard: View {
 
 
 #Preview {
-    let exercise = Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
+    let exercise = Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 20, 30], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     let routine = Routine(name: "Routine 1", exercises: [exercise])
     let session = WorkoutSession()
     let _ = session.start(routine)

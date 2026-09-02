@@ -31,3 +31,22 @@ func postComment(userId: UUID, username: String, historyId: UUID, content: Strin
         .insert(comment)
         .execute()
 }
+
+struct personalBestToUpload: Encodable {
+    var user_id: UUID
+    var exercise: String // exercise name
+    var weight: Double
+}
+// upserts a PB to supabase
+func uploadPBToSupabase(userId: UUID, exerciseName: String, weight: Double) async throws {
+    let PB = personalBestToUpload (
+        user_id: userId,
+        exercise: exerciseName,
+        weight: weight
+    )
+    
+    try await supabase
+        .from("personalbest")
+        .upsert(PB)
+        .execute()
+}

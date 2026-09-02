@@ -25,6 +25,18 @@ enum Theme {
         })
     }
     
+    static var checkedSetGold: Color {
+        Color(UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor(red: 0.35, green: 0.28, blue: 0.05, alpha: 1.0)
+            } else {
+                return UIColor(red: 0.95, green: 0.8, blue: 0.35, alpha: 0.7)
+            }
+        })
+    }
+
+    static let gold = Color(red: 0.83, green: 0.69, blue: 0.22)
+    
     static let orange = Color.orange
 
     static var progressBarBackground = Color(.secondarySystemBackground)

@@ -11,6 +11,8 @@ import SwiftData
 struct CurrentActivityIndicatorCard: View {
     @Environment(WorkoutSession.self) private var workoutSession
     
+    @State private var showEndWorkoutVerification: Bool = false
+    
     var body: some View {
         if let workoutRoutine = workoutSession.workoutRoutine {
             GeometryReader { geometry in
@@ -54,6 +56,34 @@ struct CurrentActivityIndicatorCard: View {
                 .glassEffect()
                 .padding(.horizontal)
             }
+            .sheet(isPresented: $showEndWorkoutVerification) {
+                VStack {
+                    Text("End workout without logging?")
+                        .padding()
+                        .font(.headline)
+                    
+                    Button {
+                        workoutSession.endWithoutRecordingPbs()
+                    } label: {
+                        Text("End")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(Color.red)
+                    
+                    Button {
+                        showEndWorkoutVerification = false
+                    } label : {
+                        Text("Cancel")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    }
+                    .buttonStyle(.glass)
+                }
+                .padding()
+                .presentationDetents([.height(230)])
+            }
             .frame(height: 60)
         }
     }
@@ -74,7 +104,7 @@ struct CurrentActivityIndicatorCard: View {
                 .fontWeight(.bold)
             
             Button(role: .destructive) {
-                workoutSession.end()
+                showEndWorkoutVerification = true
             } label: {
                 Image(systemName: "trash")
                     .foregroundColor(textColor == Color.white ? Color.white : Color.red)

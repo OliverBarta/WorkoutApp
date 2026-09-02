@@ -12,8 +12,7 @@ struct ExerciseSearchView: View {
     @Bindable var routine: Routine
 
     @Environment(\.dismiss) private var dismiss
-    
-    @Environment(AppSettings.self) private var appSettings // the default settings like default rest time and units
+    @Environment(AppSettings.self) private var appSettings
     
     // if the search bar is focused or not
     @FocusState private var isSearchFocused: Bool
@@ -30,7 +29,20 @@ struct ExerciseSearchView: View {
     var body: some View {
         ZStack {
             List(filtered) { exercise in
+                
                 Button {
+                    var orderOfNewExercise = 0
+                    
+                    if appSettings.addExerciseOn == "bottom" {
+                        orderOfNewExercise = routine.exercises.count
+                    } else {
+                        orderOfNewExercise = 0
+                        
+                        for exercise in routine.exercises {
+                            exercise.order += 1
+                        }
+                    }
+                    
                     let newExercise = Exercise(
                         name: exercise.name,
                         reps: [8],
@@ -41,7 +53,7 @@ struct ExerciseSearchView: View {
                         repsColumn: true,
                         weightColumn: true,
                         secsColumn: false,
-                        order: routine.exercises.count
+                        order: orderOfNewExercise
                     )
                     
                     routine.exercises.append(newExercise)

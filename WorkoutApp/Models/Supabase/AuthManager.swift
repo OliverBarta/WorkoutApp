@@ -18,6 +18,7 @@ class AuthManager {
     var currentUserId: UUID?
     var currentStreak: Int = 0
     var isLoading = true
+    var personalBests: [String: Double] = [:]
 
     init() {
         Task {

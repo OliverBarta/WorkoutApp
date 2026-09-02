@@ -8,9 +8,11 @@
 import SwiftData
 import Foundation
 
-// this is the base class for exercises and routines. every other class stems from this one
+
+
 
 extension Exercise {
+    // this is the base class for exercises and routines. every other class stems from this one
     func copy() -> Exercise {
         Exercise(
             name: name,
@@ -25,10 +27,8 @@ extension Exercise {
             order: order
         )
     }
-}
-
-// copies but sets the completed sets to zero. So when you update the routine it updates everything but resets the completedSets.
-extension Exercise {
+    
+    // copies but sets the completed sets to zero. So when you update the routine it updates everything but resets the completedSets.
     func copyCompletedSetsToZero() -> Exercise {
         Exercise(
             name: name,
@@ -44,6 +44,7 @@ extension Exercise {
         )
     }
 }
+
 
 // reps, weights and seconds are parallel arrays with one entry per set, so sets get added and
 // removed through these two to keep all three the same length
@@ -133,5 +134,4 @@ class Routine {
 func exercisesToRoutine(_ exercises: [Exercise], name: String) -> Routine {
     // exercises is a pointer so we need to copy it
     return Routine(name: name, exercises: exercises.map { $0.copy() })
-    
 }
