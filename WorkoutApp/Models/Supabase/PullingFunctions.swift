@@ -155,7 +155,7 @@ struct HistoryRow: Decodable, Identifiable {
     let routine_id: UUID?// made this ? because when a user deletes a routine all history of that routine now has routine_id = NULL
     let user_id: UUID
     let name: String
-    let exercises: [ExerciseDTO]
+    let exercises: [ExerciseHistoryDTO]
     let updated_at: Date
     let duration_seconds: Int
 }
@@ -219,6 +219,26 @@ func isUserLikingPost(historyId: UUID, userId: UUID) async throws -> Bool {
         .execute()
     
     return (response.count ?? 0) > 0
+}
+
+// pulls every personal best a user has, keyed by exercise name, so the device can seed itself
+// from the server instead of starting from nothing on each launch
+func pullPersonalBests(userId: UUID) async throws -> [String: Double] {
+    struct PersonalBestRow: Decodable {
+        let exercise: String
+        let weight: Double
+    }
+
+    let rows: [PersonalBestRow] = try await supabase
+        .from("personalbest")
+        .select("exercise, weight")
+        .eq("user_id", value: userId)
+        .execute()
+        .value
+
+    // uniquingKeysWith guards against duplicate rows for one exercise, which the unique
+    // constraint should already prevent
+    return Dictionary(rows.map { ($0.exercise, $0.weight) }, uniquingKeysWith: max)
 }
 
 // pulls a given users streak number

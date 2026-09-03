@@ -83,12 +83,10 @@ struct RoutineDuringWorkoutView: View {
                             Text("Add exercises by clicking either \"Exercise +\" button.")
                                 .foregroundColor(.secondary)
                                 .padding(.vertical, 60)
-                                .padding(.horizontal)
                         } else {
                             Text("Enable the add exercise buttons in settings.")
                                 .foregroundColor(.secondary)
                                 .padding(.vertical, 60)
-                                .padding(.horizontal)
                         }
                     } else {
                         ForEach(sortedExercises) { exercise in
@@ -272,7 +270,7 @@ struct RoutineDuringWorkoutView: View {
                         let duration = Int(Date().timeIntervalSince(startDate))
                         let historySnapshot = history
 
-                        saveRoutineToHistory(workoutRoutine, duration, modelContext)
+                        saveRoutineToHistory(workoutRoutine, duration, modelContext, appSettings.personalBests)
 
                         // updates routine
                         routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }
@@ -280,7 +278,7 @@ struct RoutineDuringWorkoutView: View {
                         Task {
                             do {
                                 try await uploadRoutineToSupabase(routine)
-                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration)
+                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration, appSettings: appSettings)
                             } catch {
                                 print("History upload error: \(error)")
                                 errorMessage = "Upload failed: \(error)"
@@ -296,21 +294,10 @@ struct RoutineDuringWorkoutView: View {
                             }
                         }
                     }
-                    // ends workout and records the pbs
-                    Task {
-                        do {
-                            if let userId = authManager.currentUserId {
-                                try await workoutSession.endAndRecordPBs(appSettings, userId: userId)
-                                dismiss()
-                            } else {
-                                print("Not signed in")
-                                errorMessage = "Not Signed in"
-                            }
-                        } catch {
-                            print("Supabase PB upload failed: \(error)")
-                            errorMessage = "Supabase PB upload failed"
-                        }
-                    }
+                    
+                    // ends workout
+                    workoutSession.end()
+                    dismiss()
                 } label : {
                     Text("Log and update")
                         .frame(maxWidth: .infinity)
@@ -328,12 +315,12 @@ struct RoutineDuringWorkoutView: View {
 
                         let duration = Int(Date().timeIntervalSince(startDate))
                         let historySnapshot = history
-
-                        saveRoutineToHistory(workoutRoutine, duration, modelContext)
+                        
+                        saveRoutineToHistory(workoutRoutine, duration, modelContext, appSettings.personalBests)
 
                         Task {
                             do {
-                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration)
+                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration, appSettings: appSettings)
                             } catch {
                                 print("Routine upload error: \(error)")
                                 errorMessage = "Upload failed: \(error)"
@@ -350,21 +337,9 @@ struct RoutineDuringWorkoutView: View {
                         }
                     }
                     
-                    // ends workout and records the pbs
-                    Task {
-                        do {
-                            if let userId = authManager.currentUserId {
-                                try await workoutSession.endAndRecordPBs(appSettings, userId: userId)
-                                dismiss()
-                            } else {
-                                print("Not signed in")
-                                errorMessage = "Not Signed in"
-                            }
-                        } catch {
-                            print("Supabase PB upload failed: \(error)")
-                            errorMessage = "Supabase PB upload failed"
-                        }
-                    }
+                    // ends workout
+                    workoutSession.end()
+                    dismiss()
                 } label : {
                     Text("Log")
                         .frame(maxWidth: .infinity)
@@ -375,7 +350,7 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     
-                    workoutSession.endWithoutRecordingPbs()
+                    workoutSession.end()
                     dismiss()
                 } label : {
                     Text("Don't log or update")
@@ -479,7 +454,7 @@ struct RoutineDuringWorkoutView: View {
                     .font(.headline)
                 
                 Button {
-                    workoutSession.endWithoutRecordingPbs()
+                    workoutSession.end()
                     dismiss()
                 } label: {
                     Text("End")

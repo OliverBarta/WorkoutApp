@@ -37,16 +37,17 @@ struct personalBestToUpload: Encodable {
     var exercise: String // exercise name
     var weight: Double
 }
-// upserts a PB to supabase
+
+// upserts a PB to supabase. if the user_id and exercise already exist then it just updates the weight.
 func uploadPBToSupabase(userId: UUID, exerciseName: String, weight: Double) async throws {
     let PB = personalBestToUpload (
         user_id: userId,
         exercise: exerciseName,
         weight: weight
     )
-    
+
     try await supabase
         .from("personalbest")
-        .upsert(PB)
+        .upsert(PB, onConflict: "user_id,exercise")
         .execute()
 }

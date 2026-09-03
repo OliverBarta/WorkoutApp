@@ -36,10 +36,11 @@ class ExerciseSnapshot {
     var repsColumn: Bool
     var weightColumn: Bool
     var secsColumn: Bool
+    var personalBestIndex: Int
     
     var historyEntry: WorkoutHistoryEntry?
 
-    init(name: String, reps: [Int], weights: [Double], seconds: [Int], repsColumn: Bool, weightColumn: Bool, secsColumn: Bool) {
+    init(name: String, reps: [Int], weights: [Double], seconds: [Int], repsColumn: Bool, weightColumn: Bool, secsColumn: Bool, personalBestIndex: Int) {
         self.name = name
         self.reps = reps
         self.weights = weights
@@ -47,22 +48,29 @@ class ExerciseSnapshot {
         self.repsColumn = repsColumn
         self.weightColumn = weightColumn
         self.secsColumn = secsColumn
+        self.personalBestIndex = personalBestIndex
     }
 }
 
-func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ modelContext: ModelContext) {
+func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ modelContext: ModelContext,_ personalBests: [String: Double]) {
     let snapshots = workoutRoutine.exercises.compactMap { exercise -> ExerciseSnapshot? in
         
         var weights: [Double] = []
         var seconds: [Int] = []
         var reps: [Int] = []
         
+        var PB: Double = (personalBests[exercise.name] ?? 0)
+        var PBIndex: Int = -1
+        
         // adds all sets that got completed to the workout history to be uploaded.
         for completedSetIndex in exercise.completedSets.sorted() {
-            if completedSetIndex < exercise.weights.count && completedSetIndex < exercise.reps.count && completedSetIndex < exercise.seconds.count {
-                reps.append(exercise.reps[completedSetIndex])
-                weights.append(exercise.weights[completedSetIndex])
-                seconds.append(exercise.seconds[completedSetIndex])
+            reps.append(exercise.reps[completedSetIndex])
+            weights.append(exercise.weights[completedSetIndex])
+            seconds.append(exercise.seconds[completedSetIndex])
+            
+            if PB < exercise.weights[completedSetIndex] {
+                PB = exercise.weights[completedSetIndex]
+                PBIndex = completedSetIndex
             }
         }
 
@@ -74,7 +82,8 @@ func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ mod
                 seconds: seconds,
                 repsColumn: exercise.repsColumn,
                 weightColumn: exercise.weightColumn,
-                secsColumn: exercise.secsColumn
+                secsColumn: exercise.secsColumn,
+                personalBestIndex: PBIndex
             )
         } else {
             return nil

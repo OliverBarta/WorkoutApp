@@ -39,7 +39,7 @@ struct FeedElementFollowing: View {
                             userID: HistoryItem.user_id,
                             dateCompleted: HistoryItem.updated_at,
                             durationSeconds: HistoryItem.duration_seconds,
-                            routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                            routineHistory: exercisesToRoutineHistory(HistoryItem.exercises, name: HistoryItem.name)
                         )
                         .onAppear {
                             if HistoryItem.id == feed.last?.id {
@@ -119,7 +119,7 @@ struct FeedElementGlobal: View {
                             userID: HistoryItem.user_id,
                             dateCompleted: HistoryItem.updated_at,
                             durationSeconds: HistoryItem.duration_seconds,
-                            routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                            routineHistory: exercisesToRoutineHistory(HistoryItem.exercises, name: HistoryItem.name)
                         )
                         .onAppear {
                             if HistoryItem.id == feed.last?.id {
@@ -167,13 +167,12 @@ struct FeedElementGlobal: View {
     }
 }
 
-// This struct is in pulling functions
 //struct HistoryRow: Decodable, Identifiable {
 //    let id: UUID
-//    let routine_id: UUID?
+//    let routine_id: UUID?// made this ? because when a user deletes a routine all history of that routine now has routine_id = NULL
 //    let user_id: UUID
 //    let name: String
-//    let exercises: [ExerciseDTO]
+//    let exercises: [ExerciseHistoryDTO]
 //    let updated_at: Date
 //    let duration_seconds: Int
 //}

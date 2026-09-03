@@ -17,10 +17,11 @@ struct ExploreFeedCard: View {
     // user name and id of the user that posted the workout
     let userName: String
     let userID: UUID
+    
     let dateCompleted: Date
     let durationSeconds: Int
     
-    let routine: Routine
+    let routineHistory: RoutineHistory
 
     @Environment(AuthManager.self) private var authManager
     @Environment(AppSettings.self) private var appSettings
@@ -48,7 +49,7 @@ struct ExploreFeedCard: View {
         } label : {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(routine.name)
+                    Text(routineHistory.name)
                         .font(.headline)
                     Spacer()
                     
@@ -71,10 +72,16 @@ struct ExploreFeedCard: View {
                         .foregroundColor(.secondary)
                 }
                 
-                ForEach(routine.exercises) { exercise in
+                ForEach(routineHistory.exercises) { exercise in
                     HStack {
+                        if exercise.personalBestIndex != -1 {
+                            Image(systemName: "crown")
+                                .foregroundStyle(Theme.gold)
+                        }
+                        
                         Text(exercise.name)
                             .font(.subheadline)
+                            .foregroundColor(exercise.personalBestIndex != -1 ? Theme.gold : Theme.primary)
                             .lineLimit(1)
                         
                         Spacer()
@@ -84,7 +91,7 @@ struct ExploreFeedCard: View {
                                 ForEach(0..<min(exercise.reps.count, exercise.weights.count, exercise.seconds.count), id: \.self) { index in
                                     Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn, unit: appSettings.weightUnit))
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(exercise.personalBestIndex == index ? Theme.gold : .secondary)
                                 }
                             }
                         }
@@ -188,7 +195,7 @@ struct ExploreFeedCard: View {
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .fullScreenCover(isPresented: $showSpectateView) {
-            RoutineSpectateView(routine: routine)
+            RoutineSpectateView(routine: routineHistoryToRoutine(routineHistory))
         }
         .fullScreenCover(isPresented: $showProfileView) {
             ProfileView(givenId: userID)
@@ -261,7 +268,22 @@ struct ExploreFeedCard: View {
 
 
 #Preview {
-    ExploreFeedCard(historyId: UUID(uuidString: "119dfeae-9d07-4818-892f-98f4617f3c49")!, userName: "Oliver", userID: UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")!, dateCompleted: Date(), durationSeconds: 60, routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60),Exercise(name: "Squat", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60)]))
+    ExploreFeedCard(
+        historyId: UUID(uuidString: "119dfeae-9d07-4818-892f-98f4617f3c49")!,
+        userName: "Oliver",
+        userID: UUID(uuidString: "fbb7dbaa-2342-4290-9f05-6c83c65dc0c5")!,
+        dateCompleted: Date(),
+        durationSeconds: 60,
+        // built the same way the feed builds it, out of the exercises on a history row.
+        // bench press has its second set as the personal best, squat has none
+        routineHistory: exercisesToRoutineHistory(
+            [
+                ExerciseHistoryDTO(name: "Bench Press", reps: [3,3,3], weights: [10, 10, 10], seconds: [0,0,0], restTime: 60, order: 0, personalBestIndex: 1),
+                ExerciseHistoryDTO(name: "Squat", reps: [3,3,3], weights: [10, 10, 10], seconds: [0,0,0], restTime: 60, order: 1, personalBestIndex: -1)
+            ],
+            name: "Routine 1"
+        )
+    )
         .environment(AuthManager())
         .environment(AppSettings())
 }

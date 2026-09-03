@@ -10,7 +10,11 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(WorkoutSession.self) private var workoutSession
-    
+
+    @Environment(AuthManager.self) private var authManager
+
+    @Environment(AppSettings.self) private var appSettings
+
     var body: some View {
         
         @Bindable var workoutSession = workoutSession
@@ -56,5 +60,6 @@ struct ContentView: View {
     ContentView()
         .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self], inMemory: true)
         .environment(WorkoutSession())
+        .environment(AuthManager())
         .environment(AppSettings())
 }
