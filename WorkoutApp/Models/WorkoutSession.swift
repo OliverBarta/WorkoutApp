@@ -47,6 +47,7 @@ class WorkoutSession {
     
     func stopRestTimer() {
         restTimerStartDate = nil
+        exerciseBeingTimed = nil
     }
 
     var isActive: Bool {
@@ -61,46 +62,24 @@ class WorkoutSession {
         showActiveWorkout = true
     }
 
-    func endAndRecordPBs(_ appSettings: AppSettings, userId: UUID) async throws {
-        guard let exercises = workoutRoutine?.exercises else {
-            print("No workoutRoutine and/or exercises")
-            endWithoutRecordingPbs()
-            return
-        }
-        
-        // record Pbs
-        for exercise in exercises {
-            var PB = (appSettings.personalBests[exercise.name] ?? 0)
-            var betterPBFound = false
-            for setIndex in exercise.completedSets {
-                if PB < exercise.weights[setIndex] {
-                    PB = exercise.weights[setIndex]
-                    betterPBFound = true
-                }
-            }
-            
-            if betterPBFound {
-                appSettings.personalBests[exercise.name] = PB // local save
-                
-                try await uploadPBToSupabase(userId: userId, exerciseName: exercise.name, weight: PB) // database save
-            }
-        }
-        
-        endWithoutRecordingPbs()
-    }
     
-    func endWithoutRecordingPbs() {
+    func end() {
         workoutRoutine = nil
         originalRoutine = nil
         workoutStartDate = nil
         showActiveWorkout = false
         newPersonalBest = nil
+        stopRestTimer()
     }
     
     
     
     // removes the exercise you gave from the workout routine
     func removeExercise(_ exercise: Exercise) {
+        if exerciseBeingTimed === exercise {
+            stopRestTimer()
+        }
+
         workoutRoutine?.exercises.removeAll { $0 === exercise }
     }
     

@@ -92,12 +92,10 @@ struct RoutineEditView: View {
                         Text("Add exercises by clicking either \"Exercise +\" button.")
                             .foregroundColor(.secondary)
                             .padding(.vertical, 60)
-                            .padding(.horizontal)
                     } else {
                         Text("Enable the exercise buttons in settings.")
                             .foregroundColor(.secondary)
                             .padding(.vertical, 60)
-                            .padding(.horizontal)
                     }
                 } else {
                     ForEach(sortedExercises) { exercise in

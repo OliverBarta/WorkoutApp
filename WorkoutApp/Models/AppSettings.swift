@@ -81,6 +81,7 @@ class AppSettings {
         didSet { UserDefaults.standard.set(personalBests, forKey: Self.personalBestsKey) }
     }
 
+    // runs everytime the phone opens the app
     init() {
         let stored = UserDefaults.standard.string(forKey: Self.weightUnitKey)
 
@@ -91,18 +92,37 @@ class AppSettings {
         } else {
             defaultRestSeconds = 90// the default default rest seconds is 90
         }
+        if let timerStored = UserDefaults.standard.string(forKey: Self.timerDefaultKey) {
+            timerDefault = timerStored
+        } else {
+            timerDefault = "stopwatch"
+        }
+
+        if let routineNumberStored = UserDefaults.standard.object(forKey: Self.routineNumberKey) as? Int {
+            routineNumber = routineNumberStored
+        } else {
+            routineNumber = 1
+        }
         
-        timerDefault = "stopwatch"
+        if let addExerciseButtonsTopStored = UserDefaults.standard.object(forKey: Self.addExerciseButtonsTopKey) as? Bool {
+            addExerciseButtonsTop = addExerciseButtonsTopStored
+        } else {
+            addExerciseButtonsTop = true
+        }
         
-        routineNumber = 1
+        if let addExerciseButtonsBotStored = UserDefaults.standard.object(forKey: Self.addExerciseButtonsBotKey) as? Bool {
+            addExerciseButtonsBot = addExerciseButtonsBotStored
+        } else {
+            addExerciseButtonsBot = false
+        }
         
-        addExerciseButtonsTop = true
-        
-        addExerciseButtonsBot = false
-        
-        addExerciseOn = "bottom"
-        
-        personalBests = [:]
+        if let addExerciseOnStored = UserDefaults.standard.string(forKey: Self.addExerciseOnKey) {
+            addExerciseOn = addExerciseOnStored
+        } else {
+            addExerciseOn = "bottom"
+        }
+
+        personalBests = UserDefaults.standard.dictionary(forKey: Self.personalBestsKey) as? [String: Double] ?? [:]
     }
 
     // wraps a binding holding pounds so an input box reads and writes the unit the user picked

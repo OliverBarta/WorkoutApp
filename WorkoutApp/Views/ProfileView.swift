@@ -134,7 +134,7 @@ struct ProfileView: View {
                         userID: givenId,
                         dateCompleted: HistoryItem.updated_at,
                         durationSeconds: HistoryItem.duration_seconds,
-                        routine: exercisesToRoutine(HistoryItem.exercises.map { $0.toModel() }, name: HistoryItem.name)
+                        routineHistory: exercisesToRoutineHistory(HistoryItem.exercises, name: HistoryItem.name)
                     )
                         .onAppear {
                             if HistoryItem.id == workoutHistory.last?.id {

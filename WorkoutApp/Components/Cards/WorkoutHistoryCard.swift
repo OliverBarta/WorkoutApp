@@ -37,8 +37,14 @@ struct WorkoutHistoryCard: View {
                 
                 ForEach(entry.exerciseSnapshots) { exercise in
                     HStack {
+                        if exercise.personalBestIndex != -1 {
+                            Image(systemName: "crown")
+                                .foregroundStyle(Theme.gold)
+                        }
+                        
                         Text(exercise.name)
                             .font(.subheadline)
+                            .foregroundColor(exercise.personalBestIndex != -1 ? Theme.gold : Theme.primary)
                             .lineLimit(1)
                         
                         Spacer()
@@ -48,7 +54,7 @@ struct WorkoutHistoryCard: View {
                                 ForEach(0..<min(exercise.reps.count, exercise.weights.count, exercise.seconds.count), id: \.self) { index in
                                     Text(formattedSet(reps: exercise.reps[index], weight: exercise.weights[index], seconds: exercise.seconds[index], repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn, unit: appSettings.weightUnit))
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(exercise.personalBestIndex == index ? Theme.gold : .secondary)
                                 }
                             }
                         }
@@ -74,7 +80,7 @@ struct WorkoutHistoryCard: View {
             routineName: "Push Day",
             durationSeconds: 30000,
             exerciseSnapshots: [
-                ExerciseSnapshot(name: "Bench Press", reps: [8,8,8], weights: [135.0,135.0,135.0], seconds: [0,0,0], repsColumn: true, weightColumn: true, secsColumn: false)
+                ExerciseSnapshot(name: "Bench Press", reps: [8,8,8], weights: [145.0,135.0,135.0], seconds: [0,0,0], repsColumn: true, weightColumn: true, secsColumn: false, personalBestIndex: 0)
             ]
         )
     )

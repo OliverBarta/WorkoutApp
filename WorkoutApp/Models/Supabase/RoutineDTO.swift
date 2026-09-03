@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 // this is the struct that makes the exercise able to be written into a json file, so it can be written into one cell on a supabase data table
 struct ExerciseDTO: Codable {
     var name: String
@@ -18,6 +19,20 @@ struct ExerciseDTO: Codable {
     var weightColumn: Bool = true
     var secsColumn: Bool = false
     var order: Int
+}
+
+// the same idea as ExerciseDTO but for a logged workout instead of a saved routine (it has a personal best index)
+struct ExerciseHistoryDTO: Codable {
+    var name: String
+    var reps: [Int]
+    var weights: [Double]
+    var seconds: [Int]
+    var restTime: Int
+    var repsColumn: Bool = true
+    var weightColumn: Bool = true
+    var secsColumn: Bool = false
+    var order: Int
+    var personalBestIndex: Int
 }
 
 struct RoutineDTO: Codable {
@@ -61,6 +76,23 @@ extension ExerciseDTO {
             weightColumn: weightColumn,
             secsColumn: secsColumn,
             order: order
+        )
+    }
+}
+
+extension ExerciseHistoryDTO {
+    func toModel() -> ExerciseHistory {
+        ExerciseHistory(
+            name: name,
+            reps: reps,
+            seconds: seconds,
+            weights: weights,
+            restTime: restTime,
+            repsColumn: repsColumn,
+            weightColumn: weightColumn,
+            secsColumn: secsColumn,
+            order: order,
+            personalBestIndex: personalBestIndex
         )
     }
 }

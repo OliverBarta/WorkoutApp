@@ -97,6 +97,7 @@ struct ExploreView: View {
                 ZStack {
                     Text("Explore")
                         .headerStyle()
+                    
                 }
                 TopPopUp(message: $errorMessage)
                 

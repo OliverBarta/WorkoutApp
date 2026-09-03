@@ -8,31 +8,78 @@
 import Foundation
 import Supabase
 
-// the struct used to upload a workout to the database
+// the struct used to upload a workout to the database. RoutineHistory is a @Model class and so
+// cannot be Encodable, which is why the row is built out of plain structs here instead.
+// id and updated_at are filled in by supabase, so they are not sent
 struct HistoryInsertDTO: Encodable {
     let user_id: UUID
     let name: String
-    let exercises: [ExerciseDTO]
+    let exercises: [ExerciseHistoryDTO]
     let routine_id: UUID
     let duration_seconds: Int
 }
 
-func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duration: Int) async throws {
+struct PBToUpload {
+    var userId: UUID
+    var exerciseName: String
+    var weight: Double
+}
+
+// uploads the routine to history and updates/uploads the new pbs
+func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duration: Int, appSettings: AppSettings) async throws {
     guard let userId = supabase.auth.currentSession?.user.id else {
         throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
     }
+    
+    var pbsToUpload: [PBToUpload] = []
 
-    let exerciseDTOs = routine.exercises.map {
-        ExerciseDTO(
-            name: $0.name,
-            reps: $0.reps,
-            weights: $0.weights,
-            seconds: $0.seconds,
-            restTime: $0.restTime,
-            repsColumn: $0.repsColumn,
-            weightColumn: $0.weightColumn,
-            secsColumn: $0.secsColumn,
-            order: $0.order
+    let exerciseDTOs = routine.exercises.compactMap { exercise -> ExerciseHistoryDTO? in
+        var reps: [Int] = []
+        var weights: [Double] = []
+        var seconds: [Int] = []
+
+        var PB = (appSettings.personalBests[exercise.name] ?? 0)
+        var PBIndex: Int = -1
+        var PBFound = false
+
+        for setIndex in exercise.completedSets {
+            if PB < exercise.weights[setIndex] {
+                PB = exercise.weights[setIndex]
+                PBIndex = reps.count
+                PBFound = true
+            }
+
+            reps.append(exercise.reps[setIndex])
+            weights.append(exercise.weights[setIndex])
+            seconds.append(exercise.seconds[setIndex])
+        }
+        
+        if PBFound {
+            appSettings.personalBests[exercise.name] = PB // local save
+            
+            pbsToUpload.append(
+                PBToUpload(
+                    userId: userId,
+                    exerciseName: exercise.name,
+                    weight: PB
+                )
+            )
+        }
+
+        // an exercise nobody completed a set of is left out of the upload entirely
+        guard !reps.isEmpty else { return nil }
+
+        return ExerciseHistoryDTO(
+            name: exercise.name,
+            reps: reps,
+            weights: weights,
+            seconds: seconds,
+            restTime: exercise.restTime,
+            repsColumn: exercise.repsColumn,
+            weightColumn: exercise.weightColumn,
+            secsColumn: exercise.secsColumn,
+            order: exercise.order,
+            personalBestIndex: PBIndex
         )
     }
 
@@ -48,4 +95,9 @@ func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duratio
         .from("history")
         .insert(dto)
         .execute()
+    
+    // goes through the pbs and uploads them
+    for upload in pbsToUpload {
+        try await uploadPBToSupabase(userId: upload.userId, exerciseName: upload.exerciseName, weight: upload.weight) // database save
+    }
 }

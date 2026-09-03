@@ -81,6 +81,8 @@ struct HomeView: View {
                         RoutineCard(routine: routines[0], deletableCard: false)
                     }
                     
+                    LeaderBoardCard(exerciseName: "Barbell bench press", initialNumRows: 5)
+                    
                     if history.isEmpty {
                         Text("No workouts logged yet")
                             .foregroundColor(.secondary)

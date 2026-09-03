@@ -63,7 +63,7 @@ struct CurrentActivityIndicatorCard: View {
                         .font(.headline)
                     
                     Button {
-                        workoutSession.endWithoutRecordingPbs()
+                        workoutSession.end()
                     } label: {
                         Text("End")
                             .frame(maxWidth: .infinity)

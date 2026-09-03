@@ -129,9 +129,3 @@ class Routine {
         self.exercises = exercises
     }
 }
-
-// given exercises and a string returns a routine
-func exercisesToRoutine(_ exercises: [Exercise], name: String) -> Routine {
-    // exercises is a pointer so we need to copy it
-    return Routine(name: name, exercises: exercises.map { $0.copy() })
-}
