@@ -35,6 +35,8 @@ struct FollowingView: View {
     @State private var errorMessage: String = ""
     @State private var showReload: Bool = false
     
+    @State private var loading = true
+    
     var body: some View {
         ScrollView {
             Rectangle()
@@ -42,9 +44,13 @@ struct FollowingView: View {
                 .opacity(0)
             
             if usersToDisplay.isEmpty {
-                Text("\(givenUsername) isn't following anybody")
-                    .foregroundColor(.secondary)
-                    .padding(.top, 60)
+                if loading {
+                    ProgressView()
+                } else {
+                    Text("\(givenUsername) isn't following anybody")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                }
             } else if let userOperatingPhoneId = authManager.currentUserId {
                 ForEach(usersToDisplay) { userToDisplay in
                     if userToDisplay.id != userOperatingPhoneId {
@@ -56,6 +62,8 @@ struct FollowingView: View {
         .scrollIndicators(.hidden)// hides the side scroll bar
         .task {
             await fillUsersToDisplay()
+            
+            
         }
         .overlay {
             VStack {
@@ -81,6 +89,7 @@ struct FollowingView: View {
                 
                 if showReload {
                     Button {
+                        loading = true
                         Task { await fillUsersToDisplay() }
                     } label : {
                         Text("Reload")
@@ -116,6 +125,8 @@ struct FollowingView: View {
                 
                 usersToDisplay.append(userToDisplay)
             }
+            
+            loading = false
             
         } catch {
             print("Failed to fetch following ids: \(error)")

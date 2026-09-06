@@ -49,7 +49,7 @@ struct RoutineCard: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Text(routine.name)
+                EditableTitle(name: $routine.name)
                     .font(.headline)
                 
                 Spacer()
@@ -136,7 +136,6 @@ struct RoutineCard: View {
             
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
-        
     }
 }
 

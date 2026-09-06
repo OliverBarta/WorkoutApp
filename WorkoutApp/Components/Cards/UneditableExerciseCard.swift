@@ -14,17 +14,24 @@ struct UneditableExerciseCard: View {
     let exercise: Exercise
 
     @Environment(AppSettings.self) private var appSettings
+    @Environment(AuthManager.self) private var authManager
 
     private let rowHeight: CGFloat = 50
+    
+    @State private var showExrciseClickedView: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(exercise.name)
-                    .font(.headline)
-                    .multilineTextAlignment(.leading)
-                    .foregroundColor(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button {
+                    showExrciseClickedView = true
+                } label: {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .multilineTextAlignment(.leading)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 
                 HStack {
                     Text("\(SecondsFormatted(exercise.restTime))")
@@ -80,6 +87,9 @@ struct UneditableExerciseCard: View {
         .padding()
         .frame(maxWidth: .infinity)
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+        .fullScreenCover(isPresented: $showExrciseClickedView) {
+            ExerciseClickedView(exerciseName: exercise.name)
+        }
     }
 }
 
@@ -88,4 +98,5 @@ struct UneditableExerciseCard: View {
         exercise: Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,1230,0,0,10], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     )
     .environment(AppSettings())
+    .environment(AuthManager())
 }

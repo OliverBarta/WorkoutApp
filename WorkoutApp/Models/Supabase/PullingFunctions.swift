@@ -120,7 +120,7 @@ func pullUsername(_ userId: UUID) async throws -> String {
         .value
 
     guard let username = rows.first?.username else {
-        throw NSError(domain: "Profile", code: 0, userInfo: [NSLocalizedDescriptionKey: "No profile found for this user"])
+        throw NSError(domain: "Profile", code: 0, userInfo: [NSLocalizedDescriptionKey: "No profile found for this user, username \(rows)"])
     }
 
     return username

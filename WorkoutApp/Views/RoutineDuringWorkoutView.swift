@@ -31,6 +31,7 @@ struct RoutineDuringWorkoutView: View {
     @State private var showingAddExerciseAlert = false
     @State private var newExerciseName = ""
     @State private var showExerciseSearch = false
+    @State private var showReorder = false
     @State private var showEndWorkoutVerifactionWindow = false
     @State private var showClearExercisesVerifactionWindow = false
     @State private var errorMessage: String = ""
@@ -52,29 +53,36 @@ struct RoutineDuringWorkoutView: View {
                     Rectangle()
                         .padding(.top, 100)
                         .opacity(0)
+                    
                     if appSettings.addExerciseButtonsTop {
-                        HStack(spacing: 2) {
+                        HStack {
                             Button {
                                 showExerciseSearch = true
                             } label : {
-                                HStack {
-                                    Text("Exercise")
-                                    Image(systemName: "plus")
-                                }
+                                Text("Exercise")
+                                Image(systemName: "plus")
                             }
                             .buttonStyle(.glassProminent)
-                            .padding(.horizontal)
                             
                             Button {
                                 showingAddExerciseAlert = true
                             } label : {
-                                HStack {
-                                    Text("Custom exercise")
-                                    Image(systemName: "plus")
-                                }
+                                Text("Custom Exercise")
+                                Image(systemName: "plus")
                             }
                             .buttonStyle(.glassProminent)
+                            
+                            Button {
+                                showReorder = true
+                            } label: {
+                                Image(systemName: "arrow.up.arrow.down")
+                            }
+                            .buttonStyle(.glass)
+                            .foregroundColor(Theme.oppositeBackground)
+                            .disabled(sortedExercises.count < 2)
+                            
                         }
+                        .padding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
@@ -95,28 +103,34 @@ struct RoutineDuringWorkoutView: View {
                     }
                     
                     if appSettings.addExerciseButtonsBot {
-                        HStack(spacing: 2) {
+                        HStack {
                             Button {
                                 showExerciseSearch = true
                             } label : {
-                                HStack {
-                                    Text("Exercise")
-                                    Image(systemName: "plus")
-                                }
+                                Text("Exercise")
+                                Image(systemName: "plus")
                             }
                             .buttonStyle(.glassProminent)
-                            .padding(.horizontal)
                             
                             Button {
                                 showingAddExerciseAlert = true
                             } label : {
-                                HStack {
-                                    Text("Custom exercise")
-                                    Image(systemName: "plus")
-                                }
+                                Text("Custom Exercise")
+                                Image(systemName: "plus")
                             }
                             .buttonStyle(.glassProminent)
+                            
+                            Button {
+                                showReorder = true
+                            } label: {
+                                Image(systemName: "arrow.up.arrow.down")
+                            }
+                            .buttonStyle(.glass)
+                            .foregroundColor(Theme.oppositeBackground)
+                            .disabled(sortedExercises.count < 2)
+                            
                         }
+                        .padding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
@@ -255,6 +269,12 @@ struct RoutineDuringWorkoutView: View {
                     .presentationCornerRadius(12)// makes the sheet 12 radius corners
             }
         }
+        .sheet(isPresented: $showReorder) {
+            if let workoutRoutine = workoutSession.workoutRoutine {
+                ReorderExercisesView(routine: workoutRoutine)
+                    .presentationCornerRadius(12)
+            }
+        }
         .sheet(isPresented: $showDoneDialog) {
             VStack(spacing: 16) {
                 Text("Log and update \"\(routine.name)\"?")
@@ -386,7 +406,7 @@ struct RoutineDuringWorkoutView: View {
                 var orderOfNewExercise = 0
                 
                 if appSettings.addExerciseOn == "bottom" {
-                    orderOfNewExercise = workoutRoutine.exercises.count
+                    orderOfNewExercise = (workoutRoutine.exercises.map(\.order).max() ?? -1) + 1
                 } else {
                     orderOfNewExercise = 0
                     
@@ -395,16 +415,19 @@ struct RoutineDuringWorkoutView: View {
                     }
                 }
                 
+                // the previous setup this exercise had (if it had one)
+                let setup = appSettings.exerciseSetup[finalName]
+
                 let newExercise = Exercise(
                     name: finalName,
-                    reps: [8],
-                    seconds: [0],
+                    reps: setup?.reps ?? [8],
+                    seconds: setup?.seconds ?? [0],
                     completedSets: [],
-                    weights: [0],
-                    restTime: appSettings.defaultRestSeconds,
-                    repsColumn: true,
-                    weightColumn: true,
-                    secsColumn: false,
+                    weights: setup?.weights ?? [0],
+                    restTime: (appSettings.lastRestTime ? setup?.restTime ?? appSettings.defaultRestSeconds : appSettings.defaultRestSeconds),
+                    repsColumn: setup?.repsColumn ?? true,
+                    weightColumn: setup?.weightColumn ?? true,
+                    secsColumn: setup?.secsColumn ?? false,
                     order: orderOfNewExercise
                 )
                 
@@ -554,7 +577,7 @@ struct RoutineDuringWorkoutView: View {
 
 #Preview {
     let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)]))
+    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0),Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 1)]))
 
     return RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
         .environment(session)

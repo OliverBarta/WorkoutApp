@@ -23,13 +23,19 @@ struct FeedElementFollowing: View {
     @State private var usernames: [UUID: String] = [:]
     @State private var durationSeconds: [UUID: Int] = [:]
     
+    @State private var loading: Bool = false
+    
     var body: some View {
         VStack {
             TopPopUp(message: $errorMessage)
             if feed.isEmpty {
-                Text("No posts")
-                    .foregroundColor(.secondary)
-                    .padding(.top, 60)
+                if loading {
+                    ProgressView()
+                } else {
+                    Text("No posts")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                }
             } else {
                 LazyVStack {
                     ForEach(feed) { HistoryItem in
@@ -56,6 +62,8 @@ struct FeedElementFollowing: View {
         }
         .frame(maxWidth: .infinity)
         .task {
+            loading = true
+            
             followingIds = (try? await theUserIdsXisFollowing(userId)) ?? []
             loadMore()
         }
@@ -63,7 +71,10 @@ struct FeedElementFollowing: View {
 
     // a window of loading. It loads the first 10, then when the user scrolls to the end of the ten it loads from 10-20 and repeat
     func loadMore() {
-        guard !isLoadingMore, !reachedEnd else { return }
+        guard !isLoadingMore, !reachedEnd else {
+            loading = false
+            return
+        }
         isLoadingMore = true
         Task {
             defer { isLoadingMore = false }
@@ -78,9 +89,11 @@ struct FeedElementFollowing: View {
                 }
                 
                 feed.append(contentsOf: next)
+                loading = false
             } catch {
                 errorMessage = "Failed to load feed: \(error)"
                 print("Failed to load feed: \(error)")
+                loading = false
             }
         }
     }
@@ -102,14 +115,20 @@ struct FeedElementGlobal: View {
     @State private var usernames: [UUID: String] = [:]
     @State private var durationSeconds: [UUID: Int] = [:]
     
+    @State private var loading: Bool = false
+    
     var body: some View {
         VStack {
             TopPopUp(message: $errorMessage)
 
             if feed.isEmpty {
-                Text("No posts")
-                    .foregroundColor(.secondary)
-                    .padding(.top, 60)
+                if loading {
+                    ProgressView()
+                } else {
+                    Text("No posts")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                }
             } else {
                 LazyVStack {
                     ForEach(feed) { HistoryItem in
@@ -136,13 +155,18 @@ struct FeedElementGlobal: View {
         }
         .frame(maxWidth: .infinity)
         .task {
+            loading = true
+            
             loadMore()
         }
     }
 
     // a window of loading. It loads the first 10, then when the user scrolls to the end of the ten it loads from 10-20 and repeat
     func loadMore() {
-        guard !isLoadingMore, !reachedEnd else { return }
+        guard !isLoadingMore, !reachedEnd else {
+            loading = false
+            return
+        }
         isLoadingMore = true
         Task {
             defer { isLoadingMore = false }
@@ -155,13 +179,13 @@ struct FeedElementGlobal: View {
                 for item in next where usernames[item.user_id] == nil {
                      usernames[item.user_id] = (try? await pullUsername(item.user_id)) ?? "Unknown"
                 }
-                
-                
 
                 feed.append(contentsOf: next)
+                loading = false
             } catch {
                 errorMessage = "Failed to load feed: \(error)"
                 print("Failed to load feed: \(error)")
+                loading = false
             }
         }
     }

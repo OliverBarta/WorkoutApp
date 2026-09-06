@@ -13,6 +13,7 @@ struct WorkoutHistoryCard: View {
     let entry: WorkoutHistoryEntry
 
     @Environment(AppSettings.self) private var appSettings
+    @Environment(AuthManager.self) private var authManager
 
     @State private var showSpectateView: Bool = false
     
@@ -85,4 +86,5 @@ struct WorkoutHistoryCard: View {
         )
     )
     .environment(AppSettings())
+    .environment(AuthManager())
 }

@@ -23,11 +23,11 @@ struct CelebrationAlert: View {
                 .allowsHitTesting(false)
             
             VStack(spacing: 12) {
-                if weight < 225 {
-                    Text("New PB")
+                if weight >= 225 && exerciseName == "Barbell bench press" {
+                    Text("YOUR THE GOAT! New PB")
                         .font(.headline)
                 } else {
-                    Text("YOUR THE GOAT! New PB")
+                    Text("New PB")
                         .font(.headline)
                 }
 
@@ -165,6 +165,6 @@ private struct Fireworks: View {
 
 
 #Preview {
-    CelebrationAlert(exerciseName: "Bench Press", weight: 225) {}
+    CelebrationAlert(exerciseName: "Barbell bench press", weight: 225) {}
         .environment(AppSettings())
 }

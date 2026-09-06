@@ -17,9 +17,7 @@ struct WorkoutTimer: View {
     @State private var timer: Timer?
 
     private var formattedTime: String {
-        let minutes = elapsedSeconds / 60
-        let seconds = elapsedSeconds % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        return SecondsFormatted(elapsedSeconds)
     }
 
     var body: some View {
