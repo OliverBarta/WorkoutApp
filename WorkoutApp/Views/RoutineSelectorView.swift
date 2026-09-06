@@ -19,6 +19,8 @@ struct RoutineSelectorView: View {
 
     // the spring used when a routine card is added or removed
     private static let cardAnimation: Animation = .spring(response: 0.35, dampingFraction: 0.8)
+    
+    @State private var keyboardObserver = KeyboardObserver()
 
     var body: some View {
         NavigationStack {
@@ -71,6 +73,22 @@ struct RoutineSelectorView: View {
                     Text("Routines")
                         .headerStyle()
                     Spacer()
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if keyboardObserver.isVisible {
+                    HStack {
+                        Spacer()
+                        Button {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        } label: {
+                            Image(systemName: "keyboard.chevron.compact.down")
+                                .fontWeight(.semibold)
+                                .padding()
+                                .glassEffect()
+                        }
+                        .padding()
+                    }
                 }
             }
         }

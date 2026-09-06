@@ -1,28 +1,18 @@
 //
-//  GlobalLeaderBoard.swift
+//  LeaderBoardCardHome.swift
 //  WorkoutApp
 //
 //  Created by Oliver Barta on 2026-09-03.
 //
 
+
 import SwiftUI
 import Foundation
 
-// wraps a user id so it can drive .fullScreenCover(item:) — passing the id along with
-// the presentation instead of in a separate @State avoids the cover opening with a
-// stale id on the first tap
-struct ProfileTarget: Identifiable {
-    let id: UUID
-}
-
-struct LeaderBoardCard: View {
+struct LeaderBoardCardHome: View {
     @State private var errorMessage: String = ""
     
-    let exerciseName: String// name of the exercise
-    
     let initialNumRows: Int// the number of rows initially loaded and increased every time the user clicks "load x more"
-    
-    @Binding var cardMode: String
     
     @Environment(AppSettings.self) private var appSettings
     @Environment(AuthManager.self) private var authManager
@@ -40,14 +30,50 @@ struct LeaderBoardCard: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack{
-                Text(exerciseName)
+                TextField("Enter exercise name", text: Bindable(appSettings).homeLeaderBoardExerciseName)
                     .font(.headline)
-                
+                    .submitLabel(.search)
+                    .onSubmit {
+                        Task {
+                            
+                            loading = true
+                            leaderBoard = []
+                            loadingTop = initialNumRows
+                            
+                            if appSettings.homeLeaderBoardMode == "global" {
+                                await loadMore()
+                                
+                                loading = false
+                            } else {
+                                if let userId = authManager.currentUserId {
+                                    Task {
+                                        do {
+                                            IdsUserIsFollowing = try await theUserIdsXisFollowing(userId)
+                                            IdsUserIsFollowing.append(userId)
+                                            
+                                            await loadMore()
+                                            
+                                            loading = false
+                                        } catch {
+                                            print("Error pulling following: \(error)")
+                                            errorMessage = "Error pulling following"
+                                            loading = false
+                                        }
+                                    }
+                                } else {
+                                    print("Error: Not signed in")
+                                    errorMessage = "Error: Not signed in"
+                                    loading = false
+                                }
+                            }
+                        }
+                    }
+
                 Spacer()
                 
-                if cardMode == "global" {
+                if appSettings.homeLeaderBoardMode == "global" {
                     Button {
-                        cardMode = "following"
+                        appSettings.homeLeaderBoardMode = "following"
                         
                         leaderBoard = []
                         loading = true
@@ -81,7 +107,7 @@ struct LeaderBoardCard: View {
                     .disabled(loading)
                 } else {
                     Button {
-                        cardMode = "global"
+                        appSettings.homeLeaderBoardMode = "global"
                         
                         leaderBoard = []
                         loading = true
@@ -133,9 +159,10 @@ struct LeaderBoardCard: View {
             }
         }
         .task {
+            
             loadingTop = initialNumRows
             
-            if cardMode == "global" {
+            if appSettings.homeLeaderBoardMode == "global" {
                 await loadMore()
                 
                 loading = false
@@ -178,9 +205,9 @@ struct LeaderBoardCard: View {
     private func loadMore() async {
         var leaderBoardTemp: [leaderBoardRow] = []
         
-        if cardMode == "global" {
+        if appSettings.homeLeaderBoardMode == "global" {
             do {
-                leaderBoardTemp = try await pullGlobalTop(exerciseName: exerciseName, startLoad: loadingTop-initialNumRows, endLoad: loadingTop-1)
+                leaderBoardTemp = try await pullGlobalTop(exerciseName: appSettings.homeLeaderBoardExerciseName, startLoad: loadingTop-initialNumRows, endLoad: loadingTop-1)
             } catch {
                 leaderBoardTemp = []
                 print("Error loading more onto the leaderboard \(error)")
@@ -188,7 +215,7 @@ struct LeaderBoardCard: View {
             }
         } else {
             do {
-                leaderBoardTemp = try await pullFollowingTop(exerciseName: exerciseName, startLoad: loadingTop-initialNumRows, endLoad: loadingTop-1, following: IdsUserIsFollowing)
+                leaderBoardTemp = try await pullFollowingTop(exerciseName: appSettings.homeLeaderBoardExerciseName, startLoad: loadingTop-initialNumRows, endLoad: loadingTop-1, following: IdsUserIsFollowing)
             } catch {
                 leaderBoardTemp = []
                 print("Error loading more onto the following leaderboard \(error)")
@@ -205,9 +232,7 @@ struct LeaderBoardCard: View {
 }
 
 #Preview {
-    @Previewable @State var cardMode: String = "global"
-
-    LeaderBoardCard(exerciseName: "Barbell bench press", initialNumRows: 5, cardMode: $cardMode)
+    LeaderBoardCardHome(initialNumRows: 5)
         .environment(AppSettings())
         .environment(AuthManager())
 }

@@ -21,7 +21,7 @@ xcrun simctl install booted /tmp/dd/Build/Products/Debug-iphonesimulator/Workout
 xcrun simctl launch booted com.oliver.WorkoutApp
 ```
 
-There are no tests and no linter configured. Most views carry a `#Preview` (33 files do) — previews are the normal way to check a UI change.
+There are no tests and no linter configured. Most views carry a `#Preview` — previews are the normal way to check a UI change.
 
 ## Architecture
 
@@ -29,9 +29,9 @@ There are no tests and no linter configured. Most views carry a `#Preview` (33 f
 
 `WorkoutAppApp.swift` creates and injects `WorkoutSession`, `AuthManager`, and `AppSettings` into the environment, and installs the SwiftData container for `[Routine.self, WorkoutHistoryEntry.self]`. It gates on `authManager.isLoading` / `isSignedIn` to pick between `LoadingStartView`, `SignInView`, and `ContentView`. Views reach these with `@Environment(WorkoutSession.self)` etc.
 
-- **`WorkoutSession`** — the live workout. Holds `workoutRoutine` (a *copy* being edited during the session) alongside `originalRoutine` (the SwiftData object). `start(_:)` sets both; the "Log and update" path at the end writes the copy's exercises back onto the original. Also owns `workoutStartDate` and `restTimerStartDate`, both stored as `Date` so timers keep running while the view is off screen, and `newPersonalBest`, set when a completed set beats a record and cleared when the celebration is dismissed.
+- **`WorkoutSession`** — the live workout. Holds `workoutRoutine` (a *copy* being edited during the session) alongside `originalRoutine` (the SwiftData object). `start(_:)` sets both; the "Log and update" path at the end writes the copy's exercises back onto the original. `workoutStartDate` and `restTimerStartDate` are stored as `Date` (plus `exerciseBeingTimed`) so timers keep running while the view is off screen. `newPersonalBest` is set by `ExerciseDuringWorkoutCard` when a completed set beats the record and cleared when the celebration is dismissed. `end()` clears everything.
 - **`AuthManager`** — Supabase session, `currentUserId`, `currentUsername`, `currentStreak`. The streak is weekly: unchanged if a workout was already logged this week, +1 if last week had one, otherwise reset to 1.
-- **`AppSettings`** — device-local preferences persisted to `UserDefaults` via `didSet` on each property.
+- **`AppSettings`** — device-local preferences persisted to `UserDefaults` via `didSet` on each property, and read back in `init()`. Also owns `personalBests: [String: Double]` (exercise name → best weight in pounds), which is the *only* store the PB logic reads from.
 
 `ContentView` is a 4-tab `TabView` (Home / Routines / Running / Explore) with `CurrentActivityIndicatorCard` overlaid when a workout is active, and a `fullScreenCover` for `RoutineDuringWorkoutView`.
 
@@ -47,8 +47,9 @@ There are no tests and no linter configured. Most views carry a `#Preview` (33 f
 
 `Models/Supabase/SupabaseClient.swift` declares a **global `let supabase`** client with the project URL and anon key inline; every network function is a free function that uses it directly. There is no repository/service layer — functions are grouped by verb:
 
-- `PullingFunctions.swift` — profiles, follower/following counts, routines, feed (`pullFeed` following-only and `pullFeedGlobal`, both cursor-paginated on `updated_at` via a `before:` parameter), likes, comments, streaks.
-- `PushingFunctions.swift` — comments, personal-best upserts.
+- `PullingFunctions.swift` — profiles, follower/following counts, routines, feed (`pullFeed` following-only and `pullFeedGlobal`, both cursor-paginated on `updated_at` via a `before:` parameter), likes, comments, streaks, `pullPersonalBests`.
+- `PushingFunctions.swift` — `postComment`, `uploadPBToSupabase` (personal-best upsert).
+- `leaderBoards.swift` — `pullGlobalTop(exerciseName:startLoad:endLoad:)` reads the `personalbest` table ordered by weight and uses `.range(from:to:)` for paging, then resolves each `user_id` to a username with a **`pullUsername` call per row** (N+1). `LeaderBoardCard` drives it; `HomeView` currently hardcodes `exerciseName: "Barbell bench press"`.
 - `UploadRoutineToSupabase.swift` (`uploadRoutineToSupabase` upserts in place; `copyRoutineToSupabase` mints a new UUID for copying someone else's routine), `UploadRoutineToHistorySupabase.swift`, `DeleteRoutineFromSupabase.swift`, `FollowingFunctions.swift`, `AuthManager.swift`.
 
 Tables in use: `profiles`, `routines`, `history`, `follows`, `likes`, `comments`, `streaks`, `personalbest`.
@@ -63,17 +64,20 @@ Note `HistoryRow.routine_id` is optional — deleting a routine nulls it on the 
 
 ### End-of-workout flow
 
-`RoutineDuringWorkoutView` shows a sheet with three choices, and the "Log and update" / "Log" paths both run this sequence:
+`RoutineDuringWorkoutView` shows a sheet with three choices ("Log and update", "Log", cancel/discard). Both logging paths run the same sequence inline in the button action:
 
-1. `saveRoutineToHistory(...)` — writes a `WorkoutHistoryEntry` locally, keeping only completed sets.
-2. ("Log and update" only) copy the session's exercises back onto the stored routine and `uploadRoutineToSupabase`.
-3. `uploadRoutineToHistorySupabase(...)`.
-4. `authManager.updateStreakAfterWorkout(history:)` — pass a snapshot of `history` taken *before* step 1, since the `@Query` would otherwise already include the new entry.
-5. `workoutSession.endAndRecordPBs(appSettings, userId:)` — compares each completed set against `appSettings.personalBests`, upserts improvements to `personalbest`, then clears the session.
+1. Capture `duration` from `workoutSession.workoutStartDate` and take `historySnapshot = history` — a snapshot of the `@Query` results taken *before* step 2, since it would otherwise already include the new entry.
+2. `saveRoutineToHistory(workoutRoutine, duration, modelContext, appSettings.personalBests)` — inserts a `WorkoutHistoryEntry` locally, keeping only completed sets, and records `personalBestIndex` per exercise.
+3. ("Log and update" only) `routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }`, then `uploadRoutineToSupabase(routine)`.
+4. `uploadRoutineToHistorySupabase(workoutRoutine, routineId:duration:appSettings:)` — inserts the `history` row **and** does the real PB bookkeeping: it compares each completed set against `appSettings.personalBests`, writes improvements back into that dictionary, and upserts them to `personalbest` via `uploadPBToSupabase`. Steps 3 and 4 share one `Task`, so a failed routine upload skips the history upload.
+5. `authManager.updateStreakAfterWorkout(history: historySnapshot)` in a separate `Task`.
+6. `workoutSession.end()` and `dismiss()` — these run synchronously, before the `Task`s above finish.
+
+**`appSettings.personalBests` is only updated in step 4**, after the local history entry is written. That ordering is deliberate (step 2 needs the pre-workout bests to mark `personalBestIndex`) but it is also why the live in-workout celebration can fire more than once for the same exercise.
 
 ## Conventions
 
-- **Weights are always stored in pounds.** Convert only at the UI edge, via `appSettings.weightBinding(_:)` for input boxes and `formattedWeight(_:unit:)` for display (`Components/Formatting.swift`). Routines are shared between users, so a stored number must mean the same thing regardless of either user's `weightUnit`.
+- **Weights are always stored in pounds.** Convert only at the UI edge, via `appSettings.weightBinding(_:)` for input boxes and `formattedWeight(_:unit:)` / `formattedSet(...)` for display (`Components/Formatting.swift`). Routines are shared between users, so a stored number must mean the same thing regardless of either user's `weightUnit`.
 - Styling constants live in `Theme.swift` (colors, `padding`, `cornerRadius`). The app leans on iOS 26 Liquid Glass — `.buttonStyle(.glassProminent)` and `.glassEffect(in:)` — and on the `.headerStyle()` modifier (`Components/HeaderStyle.swift`) for the floating title capsule.
 - Screens that use `.headerStyle()` in an `.overlay` open their `ScrollView` with an invisible `Rectangle().padding(.top, 35).opacity(0)` spacer so content clears the floating header.
 - Sheets use `.presentationCornerRadius(12)`.
@@ -83,6 +87,8 @@ Note `HistoryRow.routine_id` is optional — deleting a routine nulls it on the 
 
 ## Gotchas
 
-- `AppSettings.init()` reads `weightUnit` and `defaultRestSeconds` from `UserDefaults` but assigns literal defaults to `timerDefault`, `routineNumber`, `addExerciseButtonsTop/Bot`, `addExerciseOn`, and `personalBests` — those five settings and all personal bests reset on every launch despite being written on `didSet`.
+- **`personalBestIndex` means two different things.** `saveRoutineToHistory` sets it to `completedSetIndex` — an index into the *original* `exercise.weights` array — while the snapshot's own arrays are compacted to completed sets only. `uploadRoutineToHistorySupabase` sets it to `reps.count`, an index into the compacted array. The Supabase one is the correct convention; the local one is off whenever any earlier set was skipped.
+- `uploadRoutineToHistorySupabase` iterates `exercise.completedSets` **unsorted** (a `Set<Int>`), so the reps/weights/seconds it uploads can be in arbitrary set order. `saveRoutineToHistory` sorts.
+- `AuthManager.personalBests` and `pullPersonalBests` both exist but are never used — PBs live entirely in `AppSettings` locally and in the `personalbest` table remotely, with no pull-on-launch. Reinstalling the app loses local PB state.
 - `workoutHistoryToRoutine` hardcodes `restTime: 60` instead of using `appSettings.defaultRestSeconds` (marked with a TODO comment in place).
 - Known issue noted in `WorkoutSession`: a routine containing the same exercise twice celebrates its PB twice.

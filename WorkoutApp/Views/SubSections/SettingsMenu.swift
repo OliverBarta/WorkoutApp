@@ -92,8 +92,14 @@ struct SettingsMenu: View {
             }
             
             HStack {
-                Text("Default rest time:")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Default rest time:")
+                        .font(.headline)
+                    
+                    Text("The rest time given to exercises added to a routine from now on unless that exercise has been done before.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 Spacer()
                 
@@ -105,8 +111,14 @@ struct SettingsMenu: View {
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
 
             HStack {
-                Text("Weight unit: ")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Weight unit: ")
+                        .font(.headline)
+                    
+                    Text("All weights are stored as pounds this setting controls how they are displayed to you, if it's set to kg it will do the translation everytime a weight is rendered.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
 
                 Spacer()
 
@@ -122,14 +134,20 @@ struct SettingsMenu: View {
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
             
             HStack {
-                Text("Timer default:")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Timer default:")
+                        .font(.headline)
+                    
+                    Text("Will the fullscreen timer start in stopwatch mode or countdown mode.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
 
                 Spacer()
 
                 Picker("Timer default", selection: Bindable(appSettings).timerDefault) {
                     Text("Stopwatch").tag("stopwatch")
-                    Text("timer").tag("timer")
+                    Text("Countdown").tag("countdown")
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 220)
@@ -139,8 +157,13 @@ struct SettingsMenu: View {
             
             HStack {
                 Toggle(isOn: Bindable(appSettings).addExerciseButtonsTop) {
-                    Text("Add exercise buttons on top:")
-                        .font(.headline)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Add exercise buttons on top:")
+                            .font(.headline)
+                        Text("Will the blue buttons used to add exercises in the edit routine and the during workout view be on the top.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .padding()
@@ -156,8 +179,14 @@ struct SettingsMenu: View {
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))
             
             HStack {
-                Text("Add exercise on:")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Add exercise on:")
+                        .font(.headline)
+                    
+                    Text("Whether new exercises are added to the bottom of a routine or the top.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
 
                 Spacer()
 
@@ -167,6 +196,21 @@ struct SettingsMenu: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 220)
+            }
+            .padding()
+            .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+            
+            HStack {
+                Toggle(isOn: Bindable(appSettings).lastRestTime) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Reuse an exercise's last rest time:")
+                            .font(.headline)
+
+                        Text("New exercises start with the rest time you last used for that exercise. If you have never used it, or this is off, they start at the default rest time above.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             .padding()
             .glassEffect(in: RoundedRectangle(cornerRadius: 12))

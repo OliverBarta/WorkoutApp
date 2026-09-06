@@ -43,16 +43,13 @@ struct ExploreFeedCard: View {
     @State private var usersComment: String = ""
     
     var body: some View {
-        Button {
-            // code this in the future
-            showSpectateView = true
-        } label : {
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(routineHistory.name)
                         .font(.headline)
+                        .foregroundColor(Theme.primary)
                     Spacer()
-                    
+
                     Button {
                         showProfileView = true
                     } label : {
@@ -154,8 +151,10 @@ struct ExploreFeedCard: View {
 
                                         do {
                                             try await postComment(userId: userId, username: username, historyId: historyId, content: usersComment)
+                                            
                                             usersComment = ""
                                             comments = try await pullComments(historyId: historyId)
+                                            commentCount = comments.count
                                         } catch {
                                             print("Error posting comment: \(error)")
                                         }
@@ -188,10 +187,13 @@ struct ExploreFeedCard: View {
                 }
                 
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .buttonStyle(.plain)
-            .cornerRadius(12)
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .buttonStyle(.plain)
+        .cornerRadius(12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showSpectateView = true
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .fullScreenCover(isPresented: $showSpectateView) {

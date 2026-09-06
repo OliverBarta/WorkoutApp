@@ -13,7 +13,7 @@ struct HomeView: View {
     @Query private var routines: [Routine]
     
     @Environment(WorkoutSession.self) private var workoutSession
-
+    @Environment(AppSettings.self) private var appSettings
     @Environment(AuthManager.self) private var authManager
 
     @State private var showSettings = false
@@ -81,7 +81,7 @@ struct HomeView: View {
                         RoutineCard(routine: routines[0], deletableCard: false)
                     }
                     
-                    LeaderBoardCard(exerciseName: "Barbell bench press", initialNumRows: 5)
+                    LeaderBoardCardHome(initialNumRows: 5)
                     
                     if history.isEmpty {
                         Text("No workouts logged yet")

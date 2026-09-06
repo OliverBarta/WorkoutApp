@@ -14,7 +14,8 @@ struct ExploreRoutineCard: View {
     let routine: Routine
 
     @Environment(AppSettings.self) private var appSettings
-
+    @Environment(AuthManager.self) private var authManager
+    
     @State private var showSpectateView: Bool = false
     
     var body: some View {
@@ -64,4 +65,5 @@ struct ExploreRoutineCard: View {
 #Preview {
     ExploreRoutineCard(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60),Exercise(name: "Squat", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 10, 10], restTime: 60)]))
         .environment(AppSettings())
+        .environment(AuthManager())
 }

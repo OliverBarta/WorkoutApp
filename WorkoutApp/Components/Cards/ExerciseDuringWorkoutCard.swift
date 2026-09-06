@@ -14,6 +14,7 @@ struct ExerciseDuringWorkoutCard: View {
     @Environment(WorkoutSession.self) private var workoutSession
     @Environment(AppSettings.self) private var appSettings
     @Environment(\.modelContext) private var modelContext
+    @Environment(AuthManager.self) private var authManager
     
     let rowHeightValue: CGFloat = 61
     
@@ -29,15 +30,22 @@ struct ExerciseDuringWorkoutCard: View {
     
     @State private var personalBest: Double = 0
     @State private var personalBestIndex: Int = -1// the index of a completed set that has the personal best weight (-1 if no sets have that)
-
+    
+    @State private var showExerciseClickedView: Bool = false
+    
     var body: some View {
         VStack(spacing: 0) {
             TopPopUp(message: $errorMessage)
             HStack {
-                Text(exercise.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button {
+                    showExerciseClickedView = true
+                } label: {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
                 
                 Spacer()
                 
@@ -176,6 +184,9 @@ struct ExerciseDuringWorkoutCard: View {
         .fullScreenCover(isPresented: $timerFullscreen) {
             TimerFullscreen(secondsRecorded: $exercise.seconds[setIndexTimerAttatchedTo], attachedSet: setIndexTimerAttatchedTo+1)
         }
+        .fullScreenCover(isPresented: $showExerciseClickedView) {
+            ExerciseClickedView(exerciseName: exercise.name)
+        }
         .onChange(of: editRestTimeView) { _, isPresented in// sets the picker wheel variables to the current rest time
             if isPresented {
                 pickerMinutes = exercise.restTime / 60
@@ -252,7 +263,7 @@ struct ExerciseDuringWorkoutCard: View {
 
 
 #Preview {
-    let exercise = Exercise(name: "Bench Press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 20, 30], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
+    let exercise = Exercise(name: "Barbell bench press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 20, 30], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     let routine = Routine(name: "Routine 1", exercises: [exercise])
     let session = WorkoutSession()
     let _ = session.start(routine)
@@ -260,5 +271,6 @@ struct ExerciseDuringWorkoutCard: View {
     ExerciseDuringWorkoutCard(exercise: exercise)
         .environment(session)
         .environment(AppSettings())
+        .environment(AuthManager())
         .modelContainer(for: [Routine.self, Exercise.self], inMemory: true)
 }

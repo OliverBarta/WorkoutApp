@@ -14,12 +14,15 @@ struct ExerciseEditCard: View {
     @Bindable var exercise: Exercise
     @Environment(AppSettings.self) private var appSettings
     @Environment(\.modelContext) private var modelContext
+    
     private let rowHeight: CGFloat = 60
     
     @State private var editRestTimeView: Bool = false
     @State private var pickerMinutes: Int = 0
     @State private var pickerSeconds: Int = 0
 
+    @State private var showExerciseClickedView: Bool = false
+    
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -27,7 +30,11 @@ struct ExerciseEditCard: View {
                     .font(.headline)
                     .multilineTextAlignment(.leading)
                 
-                Spacer()
+                Button {
+                    showExerciseClickedView = true
+                } label : {
+                    Image(systemName: "eye")
+                }
                 
                 Menu {
                     Toggle("Reps column", isOn: $exercise.repsColumn)
@@ -142,6 +149,9 @@ struct ExerciseEditCard: View {
             }
             .presentationDetents([.height(380)])
         }
+        .fullScreenCover(isPresented: $showExerciseClickedView) {
+            ExerciseClickedView(exerciseName: exercise.name)
+        }
         
     }
     
@@ -152,4 +162,5 @@ struct ExerciseEditCard: View {
         exercise: Exercise(name: "Dumbell Bicep curl", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     )
     .environment(AppSettings())
+    .environment(AuthManager())
 }

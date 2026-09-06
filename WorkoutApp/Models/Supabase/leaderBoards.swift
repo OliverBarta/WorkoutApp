@@ -55,3 +55,45 @@ func pullGlobalTop(exerciseName: String, startLoad: Int, endLoad: Int) async thr
     
     return finalOutput
 }
+
+// pulls the personalbests from startLoad-endLoad for a given exercise name for only the users in "following"
+func pullFollowingTop(exerciseName: String, startLoad: Int, endLoad: Int, following: [UUID]) async throws -> [leaderBoardRow] {
+    
+    struct PersonalBestDTO: Decodable {
+        let user_id: UUID
+        let exercise: String
+        let weight: Double
+    }
+    
+    let response: [PersonalBestDTO] = try await supabase
+        .from("personalbest")
+        .select("user_id, exercise, weight")
+        .eq("exercise", value: exerciseName)
+        .order("weight", ascending: false)
+        .range(from: startLoad, to: endLoad)
+        .execute()
+        .value
+    
+    var finalOutput: [leaderBoardRow] = []
+    
+    for item in response {
+        if following.contains(item.user_id) {
+            var newUsername = ""
+            
+            do {
+                newUsername = try await pullUsername(item.user_id)
+            } catch {
+                newUsername = "Unknown"
+            }
+            
+            let newRow = leaderBoardRow (
+                userId: item.user_id,
+                username: newUsername,
+                weight: item.weight
+            )
+            finalOutput.append(newRow)
+        }
+    }
+    
+    return finalOutput
+}

@@ -35,6 +35,8 @@ struct ProfileView: View {
     @State private var followingViewBeingShown = false
     @State private var followerViewBeingShown = false
 
+    @State private var routinesLoading = true
+    @State private var historyLoading = true
     
     var body: some View {
         ScrollView {
@@ -115,9 +117,13 @@ struct ProfileView: View {
                         ExploreRoutineCard(routine: routine)
                 }
             } else {
-                Text("\(username) has no routines")
-                    .foregroundColor(.secondary)
-                    .padding(.top, 60)
+                if routinesLoading {
+                    ProgressView()
+                } else {
+                    Text("\(username) has no routines")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                }
             }
             
             
@@ -145,24 +151,40 @@ struct ProfileView: View {
                 if isLoadingMore {
                     ProgressView()
                 } else if workoutHistory.isEmpty {
-                    Text("\(username) has never worked out")
-                        .foregroundColor(.secondary)
-                        .padding(.top, 60)
+                    if historyLoading {
+                        ProgressView()
+                    } else {
+                        Text("\(username) has never worked out")
+                            .foregroundColor(.secondary)
+                            .padding(.top, 60)
+                    }
                 }
             }
 
         }
         .scrollIndicators(.hidden)// hides the side scroll bar
-        .task {
+        .task(id: givenId) {
+            // reset so a re-run doesn't leave the previous profile's data on screen
+            routines = []
+            workoutHistory = []
+            username = ""
+            reachedEnd = false
+            routinesLoading = true
+            historyLoading = true
+
             await loadCounts()
 
             await loadRoutines()
+            
+            routinesLoading = false
 
             await loadUsername()
 
             await loadIsFollowing()
 
             loadMoreHistory()
+            
+            historyLoading = false
 
             do {
                 streakNumber = try await pullStreak(userId: givenId)
@@ -264,6 +286,7 @@ struct ProfileView: View {
             routines = try await pullFullRoutines(givenId)
         } catch {
             errorMessage = error.localizedDescription
+            print("Error loading routines: ")
             print(error.localizedDescription)
         }
     }
@@ -272,8 +295,8 @@ struct ProfileView: View {
         do {
             username = try await pullUsername(givenId)
         } catch {
-            errorMessage = error.localizedDescription
-            print(error.localizedDescription)
+            errorMessage = "Error loading username: \(error.localizedDescription)"
+            print("Error loading username: \(error.localizedDescription)")
         }
     }
     
@@ -282,8 +305,8 @@ struct ProfileView: View {
             followerCount = try await pullFollowerCount(givenId)
             followingCount = try await pullFollowingCount(givenId)
         } catch {
-            errorMessage = error.localizedDescription
-            print(error.localizedDescription)
+            errorMessage = "Error loading follower/ing counts: \(error.localizedDescription)"
+            print("Error loading follower/ing counts: \(error.localizedDescription)")
         }
     }
 
@@ -292,8 +315,8 @@ struct ProfileView: View {
         do {
             isFollowing = try await pullIsFollowing(followerId: currentUserId, followingId: givenId)
         } catch {
-            errorMessage = error.localizedDescription
-            print(error.localizedDescription)
+            errorMessage = "Error loading isFollowing: \(error.localizedDescription)"
+            print("Error loading isFollowing: \(error.localizedDescription)")
         }
     }
 }

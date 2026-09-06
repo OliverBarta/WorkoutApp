@@ -25,7 +25,7 @@ struct PBToUpload {
     var weight: Double
 }
 
-// uploads the routine to history and updates/uploads the new pbs
+// uploads the routine to history and updates/uploads the new pbs and updates volumeHistory and weightHistory
 func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duration: Int, appSettings: AppSettings) async throws {
     guard let userId = supabase.auth.currentSession?.user.id else {
         throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
@@ -42,16 +42,55 @@ func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duratio
         var PBIndex: Int = -1
         var PBFound = false
 
+        var totalWeight: Double = 0
+        var totalSets: Double = 0
+        
         for setIndex in exercise.completedSets {
             if PB < exercise.weights[setIndex] {
                 PB = exercise.weights[setIndex]
                 PBIndex = reps.count
                 PBFound = true
             }
+            
+            totalSets += Double(exercise.reps[setIndex])
+            totalWeight += exercise.weights[setIndex]
 
             reps.append(exercise.reps[setIndex])
             weights.append(exercise.weights[setIndex])
             seconds.append(exercise.seconds[setIndex])
+        }
+        
+        if exercise.completedSets.count > 0 {
+            // saving to weightHistory for the graph
+            var weightHistory = appSettings.weightHistory[exercise.name] ?? []
+            
+            totalWeight = totalWeight/Double(exercise.completedSets.count) // average weight of the set
+            
+            let newWeightDataPoint = GraphDataPoint(
+                date: Date(),
+                value: totalWeight
+            )
+            
+            weightHistory.append(newWeightDataPoint)// save to weight history
+            appSettings.weightHistory[exercise.name] = weightHistory
+            //
+            
+            // saving to volumeHistory for the volume graph
+            var volumeHistory = appSettings.volumeHistory[exercise.name] ?? []
+            
+            let newVolumeDataPoint = GraphDataPoint(
+                date: Date(),
+                value: totalSets
+            )
+            
+            volumeHistory.append(newVolumeDataPoint)
+            appSettings.volumeHistory[exercise.name] = volumeHistory
+            //
+            
+            // saving this exercise setup
+            appSettings.exerciseSetup[exercise.name] = ExerciseSetup(
+                reps: reps, weights: weights, seconds: seconds, restTime: exercise.restTime, repsColumn: exercise.repsColumn, weightColumn: exercise.weightColumn, secsColumn: exercise.secsColumn)
+            //
         }
         
         if PBFound {

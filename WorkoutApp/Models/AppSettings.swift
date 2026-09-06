@@ -7,6 +7,26 @@
 
 import SwiftUI
 
+struct ExerciseSetup: Codable {
+    let reps: [Int]
+    let weights: [Double]
+    let seconds: [Int]
+    let restTime: Int
+    let repsColumn: Bool
+    let weightColumn: Bool
+    let secsColumn: Bool
+    
+    init(reps: [Int], weights: [Double], seconds: [Int], restTime: Int, repsColumn: Bool, weightColumn: Bool, secsColumn: Bool) {
+        self.reps = reps
+        self.weights = weights
+        self.seconds = seconds
+        self.restTime = restTime
+        self.repsColumn = repsColumn
+        self.weightColumn = weightColumn
+        self.secsColumn = secsColumn
+    }
+}
+
 // weights are always stored in pounds, so anything shown in kilograms is converted on the way
 // out to the screen and back again on the way in. Routines get shared between users, so the
 // stored number has to mean the same thing no matter what unit either of them is set to
@@ -42,12 +62,20 @@ class AppSettings {
 
     private static let weightUnitKey = "weightUnit"
     private static let defaultRestSecondsKey = "defaultRestSeconds"
-    private static let timerDefaultKey = "timerDefault"
+    private static let timerDefaultKey = "timerDefault"// whether the fullscreen timer starts as a stopwatch or countdown
     private static let routineNumberKey = "routineNumber"
     private static let addExerciseButtonsTopKey = "addExerciseButtonsTop"
     private static let addExerciseButtonsBotKey = "addExerciseButtonsBot"
     private static let addExerciseOnKey = "addExerciseOn"
     private static let personalBestsKey = "personalBests"
+    private static let homeLeaderBoardModeKey = "homeLeaderBoardMode"// the mode of the leaderboard on the home page ("following" or "global"). saved here so theire choice stays where they left it
+    private static let homeLeaderBoardExerciseNameKey = "homeLeaderBoardExerciseName"// the name of the leaderboard exercise on the home page
+    private static let exerciseLeaderBoardModeKey = "exerciseLeaderBoardMode"// same as above but in the exerciseclickedView
+    private static let weightHistoryKey = "weightHistory"// [String: [GraphDataPoint]]
+    private static let volumeHistoryKey = "volumeHistory"// [String: [GraphDataPoint]]
+    // the last setup for a given exercise so when you add an exercise to your workout it sets it up the same way you did last time
+    private static let exerciseSetupKey = "exerciseSetup"
+    private static let lastRestTimeKey = "lastRestTime"
 
     var weightUnit: WeightUnit {
         didSet { UserDefaults.standard.set(weightUnit.rawValue, forKey: Self.weightUnitKey) }
@@ -79,6 +107,47 @@ class AppSettings {
     
     var personalBests: [String: Double] {
         didSet { UserDefaults.standard.set(personalBests, forKey: Self.personalBestsKey) }
+    }
+    
+    var homeLeaderBoardMode: String {
+        didSet { UserDefaults.standard.set(homeLeaderBoardMode, forKey: Self.homeLeaderBoardModeKey) }
+    }
+    
+    var exerciseLeaderBoardMode: String {
+        didSet { UserDefaults.standard.set(exerciseLeaderBoardMode, forKey: Self.exerciseLeaderBoardModeKey) }
+    }
+    
+    var homeLeaderBoardExerciseName: String {
+        didSet { UserDefaults.standard.set(homeLeaderBoardExerciseName, forKey: Self.homeLeaderBoardExerciseNameKey)}
+    }
+    
+    var weightHistory: [String: [GraphDataPoint]] {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(weightHistory) {
+                UserDefaults.standard.set(encoded, forKey: "weightHistory")
+            }
+        }
+    }
+    
+    var volumeHistory: [String: [GraphDataPoint]] {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(volumeHistory) {
+                UserDefaults.standard.set(encoded, forKey: "volumeHistory")
+            }
+        }
+    }
+    
+    // the last setup for a given exercise so when you add an exercise to your workout it sets it up the same way you did last time
+    var exerciseSetup: [String: ExerciseSetup] {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(exerciseSetup) {
+                UserDefaults.standard.set(encoded, forKey: "exerciseSetup")
+            }
+        }
+    }
+    
+    var lastRestTime: Bool {
+        didSet { UserDefaults.standard.set(lastRestTime, forKey: Self.lastRestTimeKey) }
     }
 
     // runs everytime the phone opens the app
@@ -121,8 +190,54 @@ class AppSettings {
         } else {
             addExerciseOn = "bottom"
         }
+        
+        if let homeLeaderBoardModeStored = UserDefaults.standard.string(forKey: Self.homeLeaderBoardModeKey) {
+            homeLeaderBoardMode = homeLeaderBoardModeStored
+        } else {
+            homeLeaderBoardMode = "global"
+        }
+        
+        if let exerciseLeaderBoardModeStored = UserDefaults.standard.string(forKey: Self.exerciseLeaderBoardModeKey) {
+            exerciseLeaderBoardMode = exerciseLeaderBoardModeStored
+        } else {
+            exerciseLeaderBoardMode = "following"
+        }
+        
+        if let homeLeaderBoardExerciseNameStored = UserDefaults.standard.string(forKey: Self.homeLeaderBoardExerciseNameKey) {
+            homeLeaderBoardExerciseName = homeLeaderBoardExerciseNameStored
+        } else {
+            homeLeaderBoardExerciseName = "Barbell bench press"
+        }
 
         personalBests = UserDefaults.standard.dictionary(forKey: Self.personalBestsKey) as? [String: Double] ?? [:]
+        
+        if let data = UserDefaults.standard.data(forKey: "weightHistory"),
+           let decoded = try? JSONDecoder().decode([String : [GraphDataPoint]].self, from: data) {
+            weightHistory = decoded
+        } else {
+            weightHistory = [:]
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: "volumeHistory"),
+           let decoded = try? JSONDecoder().decode([String : [GraphDataPoint]].self, from: data) {
+            volumeHistory = decoded
+        } else {
+            volumeHistory = [:]
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: "exerciseSetup"),
+           let decoded = try? JSONDecoder().decode([String : ExerciseSetup].self, from: data) {
+            exerciseSetup = decoded
+        } else {
+            exerciseSetup = [:]
+        }
+        
+        if let lastRestTimeStored = UserDefaults.standard.object(forKey: Self.lastRestTimeKey) as? Bool {
+            lastRestTime = lastRestTimeStored
+        } else {
+            lastRestTime = true
+        }
+        
     }
 
     // wraps a binding holding pounds so an input box reads and writes the unit the user picked

@@ -44,7 +44,7 @@ struct TimerFullscreen: View {
             
             Picker("Feed", selection: Bindable(appSettings).timerDefault) {
                 Text("Stopwatch").tag("stopwatch")
-                Text("Timer").tag("timer")
+                Text("Countdown").tag("countdown")
             }
             .pickerStyle(.segmented)
             .padding()

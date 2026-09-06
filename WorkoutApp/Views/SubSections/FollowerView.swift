@@ -35,6 +35,8 @@ struct FollowerView: View {
     @State private var errorMessage: String = ""
     @State private var showReload: Bool = false
     
+    @State private var loading = true
+    
     var body: some View {
         ScrollView {
             Rectangle()
@@ -43,9 +45,13 @@ struct FollowerView: View {
             
             
             if usersToDisplay.isEmpty {
-                Text("\(givenUsername) has no followers")
-                    .foregroundColor(.secondary)
-                    .padding(.top, 60)
+                if loading {
+                    ProgressView()
+                } else {
+                    Text("\(givenUsername) has no followers")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                }
             } else if let userOperatingPhoneId = authManager.currentUserId {
                 ForEach(usersToDisplay) { userToDisplay in
                     if userToDisplay.id != userOperatingPhoneId {
@@ -81,6 +87,7 @@ struct FollowerView: View {
                 
                 if showReload {
                     Button {
+                        loading = true
                         Task { await fillUsersToDisplay() }
                     } label : {
                         Text("Reload")
@@ -101,6 +108,7 @@ struct FollowerView: View {
         guard let userOperatingPhoneId = authManager.currentUserId else {
             print("Not signed in")
             errorMessage = "Failed to fetch followers, not signed in"
+            loading = false
             return
         }
         do {
@@ -118,11 +126,12 @@ struct FollowerView: View {
                 
                 usersToDisplay.append(userToDisplay)
             }
-            
+            loading = false
         } catch {
             print("Failed to fetch follower ids: \(error)")
             errorMessage = "Couldn't load followers"
             showReload = true
+            loading = false
         }
         
     }
