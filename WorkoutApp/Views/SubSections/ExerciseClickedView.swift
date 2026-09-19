@@ -44,6 +44,7 @@ struct ExerciseClickedView: View {
                 ZStack {
                     Text("\(exerciseName)")
                         .headerStyle()
+                        .padding(.horizontal, 65)
                     
                     
                     Button {

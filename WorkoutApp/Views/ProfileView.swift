@@ -208,10 +208,12 @@ struct ProfileView: View {
                         Text(username)
                             .headerStyle()
                             .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.horizontal, 100)
                     } else {
                         Text("Loading...")
                             .headerStyle()
                             .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.horizontal, 100)
                     }
                     
                     HStack {

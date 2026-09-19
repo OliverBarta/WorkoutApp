@@ -59,7 +59,7 @@ func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ mod
         var seconds: [Int] = []
         var reps: [Int] = []
         
-        var PB: Double = (personalBests[exercise.name] ?? 0)
+        var PB: Double = (personalBests[exercise.name.lowercased()] ?? 0)
         var PBIndex: Int = -1
         
         // adds all sets that got completed to the workout history to be uploaded.
@@ -101,7 +101,7 @@ func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ mod
 }
 
 // converts a workoutHistoryEntry into type Routine
-func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry) -> Routine {
+func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry, _ appSettings: AppSettings) -> Routine {
     let finalRoutine = Routine(name: workoutHistoryEntry.routineName)
     
     var orderTracked = -1
@@ -115,7 +115,7 @@ func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry) -> Rout
             seconds: exerciseSnapshot.seconds,
             completedSets: [],
             weights: exerciseSnapshot.weights,
-            restTime: 60,// replace this with the users default rest time
+            restTime: appSettings.defaultRestSeconds,
             repsColumn: exerciseSnapshot.repsColumn,
             weightColumn: exerciseSnapshot.weightColumn,
             secsColumn: exerciseSnapshot.secsColumn,

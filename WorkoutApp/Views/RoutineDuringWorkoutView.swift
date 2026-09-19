@@ -78,7 +78,7 @@ struct RoutineDuringWorkoutView: View {
                                 Image(systemName: "arrow.up.arrow.down")
                             }
                             .buttonStyle(.glass)
-                            .foregroundColor(Theme.oppositeBackground)
+                            .foregroundColor(sortedExercises.count < 2 ? Color.secondary.opacity(0.5) : Theme.oppositeBackground)
                             .disabled(sortedExercises.count < 2)
                             
                         }
@@ -126,7 +126,7 @@ struct RoutineDuringWorkoutView: View {
                                 Image(systemName: "arrow.up.arrow.down")
                             }
                             .buttonStyle(.glass)
-                            .foregroundColor(Theme.oppositeBackground)
+                            .foregroundColor(sortedExercises.count < 2 ? Color.secondary.opacity(0.5) : Theme.oppositeBackground)
                             .disabled(sortedExercises.count < 2)
                             
                         }
@@ -190,6 +190,7 @@ struct RoutineDuringWorkoutView: View {
                             
                             Text(routine.name)
                                 .headerStyle()
+                                .padding(.horizontal, 90)
                         }
                     }
                     .padding(.bottom, 25)
@@ -316,7 +317,7 @@ struct RoutineDuringWorkoutView: View {
                     }
                     
                     // ends workout
-                    workoutSession.end()
+                    workoutSession.end(modelContext)
                     dismiss()
                 } label : {
                     Text("Log and update")
@@ -358,7 +359,7 @@ struct RoutineDuringWorkoutView: View {
                     }
                     
                     // ends workout
-                    workoutSession.end()
+                    workoutSession.end(modelContext)
                     dismiss()
                 } label : {
                     Text("Log")
@@ -370,7 +371,7 @@ struct RoutineDuringWorkoutView: View {
                 
                 Button {
                     
-                    workoutSession.end()
+                    workoutSession.end(modelContext)
                     dismiss()
                 } label : {
                     Text("Don't log or update")
@@ -477,7 +478,7 @@ struct RoutineDuringWorkoutView: View {
                     .font(.headline)
                 
                 Button {
-                    workoutSession.end()
+                    workoutSession.end(modelContext)
                     dismiss()
                 } label: {
                     Text("End")
@@ -576,12 +577,15 @@ struct RoutineDuringWorkoutView: View {
 
 
 #Preview {
-    let session = WorkoutSession()
-    session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0),Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 1)]))
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Routine.self, WorkoutHistoryEntry.self, WorkOutLongSave.self, configurations: config)
 
-    return RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
+    let session = WorkoutSession()
+    let _ = session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0),Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 1)]), container.mainContext, Date(), false)
+
+    RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
         .environment(session)
         .environment(AuthManager())
         .environment(AppSettings())
-        .modelContainer(for: WorkoutHistoryEntry.self, inMemory: true)
+        .modelContainer(container)
 }

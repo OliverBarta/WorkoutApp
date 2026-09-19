@@ -56,7 +56,7 @@ enum WeightUnit: String, CaseIterable, Identifiable {
     }
 }
 
-// settings that apply across the whole app, kept on the device
+// settings that apply across the whole app, kept on the device. Not all are changed in the settings menu.
 @Observable
 class AppSettings {
 
@@ -76,6 +76,7 @@ class AppSettings {
     // the last setup for a given exercise so when you add an exercise to your workout it sets it up the same way you did last time
     private static let exerciseSetupKey = "exerciseSetup"
     private static let lastRestTimeKey = "lastRestTime"
+    private static let showPreviousExercisesKey = "showPreviousExercises"// whether or not the previous exercises in exercise search view are shown. This is toggled in exercise search view
 
     var weightUnit: WeightUnit {
         didSet { UserDefaults.standard.set(weightUnit.rawValue, forKey: Self.weightUnitKey) }
@@ -148,6 +149,10 @@ class AppSettings {
     
     var lastRestTime: Bool {
         didSet { UserDefaults.standard.set(lastRestTime, forKey: Self.lastRestTimeKey) }
+    }
+    
+    var showPreviousExercises: Bool {
+        didSet { UserDefaults.standard.set(showPreviousExercises, forKey: Self.showPreviousExercisesKey)}
     }
 
     // runs everytime the phone opens the app
@@ -236,6 +241,12 @@ class AppSettings {
             lastRestTime = lastRestTimeStored
         } else {
             lastRestTime = true
+        }
+        
+        if let showPreviousExercisesStored = UserDefaults.standard.object(forKey: Self.showPreviousExercisesKey) as? Bool {
+            showPreviousExercises = showPreviousExercisesStored
+        } else {
+            showPreviousExercises = true
         }
         
     }

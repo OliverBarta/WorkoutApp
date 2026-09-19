@@ -14,6 +14,7 @@ struct HeaderStyle: ViewModifier {
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
             .glassEffect(in: Capsule())
+            .lineLimit(1)
     }
 }
 
@@ -21,4 +22,10 @@ extension View {
     func headerStyle() -> some View {
         modifier(HeaderStyle())
     }
+}
+
+#Preview {
+    Text("Home")
+        .headerStyle()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
 }

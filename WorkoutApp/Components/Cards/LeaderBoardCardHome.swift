@@ -160,6 +160,12 @@ struct LeaderBoardCardHome: View {
         }
         .task {
             
+            loading = true
+            
+            leaderBoard = []
+            
+            IdsUserIsFollowing = []
+            
             loadingTop = initialNumRows
             
             if appSettings.homeLeaderBoardMode == "global" {

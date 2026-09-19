@@ -24,10 +24,10 @@ struct CelebrationAlert: View {
             
             VStack(spacing: 12) {
                 if weight >= 225 && exerciseName == "Barbell bench press" {
-                    Text("YOUR THE GOAT! New PB")
+                    Text("YOUR THE GOAT! New Weight PB")
                         .font(.headline)
                 } else {
-                    Text("New PB")
+                    Text("New Weight PB")
                         .font(.headline)
                 }
 

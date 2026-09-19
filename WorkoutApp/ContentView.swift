@@ -14,6 +14,11 @@ struct ContentView: View {
     @Environment(AuthManager.self) private var authManager
 
     @Environment(AppSettings.self) private var appSettings
+    
+    // query makes workoutLongSave the same everywhere so just type this and the variable is the same
+    @Query private var workoutLongSave: [WorkOutLongSave]
+    
+    @State private var askToContinuePrevious: Bool = false
 
     var body: some View {
         
@@ -53,12 +58,29 @@ struct ContentView: View {
                 .environment(workoutSession)
             }
         }
+        .fullScreenCover(isPresented: $askToContinuePrevious) {
+            ContinueWhereYouLeftOff(leftOff: workoutLongSave[0])
+        }
+        .task {
+            askToContinuePrevious = checkWorkOutLongSave()
+        }
+    }
+    private func checkWorkOutLongSave() -> Bool {
+        if workoutSession.showActiveWorkout {
+            return false
+        }
+        
+        if workoutLongSave.count > 0 {
+            return true
+        }
+        
+        return false
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self], inMemory: true)
+        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self, WorkOutLongSave.self], inMemory: true)
         .environment(WorkoutSession())
         .environment(AuthManager())
         .environment(AppSettings())

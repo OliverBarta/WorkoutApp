@@ -28,7 +28,8 @@ struct WorkoutAppApp: App {
             .environment(workoutSession)
             .environment(authManager)
             .environment(appSettings)
+            
         }
-        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self])
+        .modelContainer(for: [Routine.self, WorkoutHistoryEntry.self, WorkOutLongSave.self])
     }
 }

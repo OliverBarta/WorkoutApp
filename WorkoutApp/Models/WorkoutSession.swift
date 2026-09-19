@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Observation
+import SwiftData
 
 // the class for a active workout.
 
@@ -54,16 +55,34 @@ class WorkoutSession {
         workoutRoutine != nil
     }
 
-    func start(_ routine: Routine) {
-        workoutRoutine = routine.copy()
-        // any edit on original routine edits routine.
-        originalRoutine = routine
-        workoutStartDate = Date()
+    func start(_ routine: Routine,_ context: ModelContext,_ givenStart: Date,_ workoutHasPreviousStartDate: Bool) {
+        let copy = routine.copy()
+        var startDate = Date()
+        if workoutHasPreviousStartDate {
+            startDate = givenStart
+        }
+        
+        workoutRoutine = copy// deep copy routine
+        originalRoutine = routine// shallow copy routine
+        workoutStartDate = startDate
         showActiveWorkout = true
-    }
+        
+        // Clear workoutlongsave
+        for stale in (try? context.fetch(FetchDescriptor<WorkOutLongSave>())) ?? [] {
+            context.delete(stale)
+        }
 
+        context.insert(WorkOutLongSave(startDate: startDate, routine: copy))
+        try? context.save() // explicit: autosave may not have run when a crash hits
+    }
     
-    func end() {
+    func end(_ context: ModelContext) {
+        // Clear workoutlongsave
+        for stale in (try? context.fetch(FetchDescriptor<WorkOutLongSave>())) ?? [] {
+            context.delete(stale)
+        }
+        
+        
         workoutRoutine = nil
         originalRoutine = nil
         workoutStartDate = nil
@@ -71,8 +90,6 @@ class WorkoutSession {
         newPersonalBest = nil
         stopRestTimer()
     }
-    
-    
     
     // removes the exercise you gave from the workout routine
     func removeExercise(_ exercise: Exercise) {

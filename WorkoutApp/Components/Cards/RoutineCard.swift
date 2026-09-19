@@ -82,7 +82,7 @@ struct RoutineCard: View {
                 .buttonStyle(.glass)
                 
                 Button {
-                    workoutSession.start(routine)
+                    workoutSession.start(routine, modelContext, Date(), false)
                     
                 } label: {
                     Text("Start Routine")

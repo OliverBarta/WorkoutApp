@@ -133,6 +133,13 @@ struct LeaderBoardCard: View {
             }
         }
         .task {
+            
+            loading = true
+            
+            leaderBoard = []
+            
+            IdsUserIsFollowing = []
+            
             loadingTop = initialNumRows
             
             if cardMode == "global" {

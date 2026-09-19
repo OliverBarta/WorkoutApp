@@ -15,9 +15,11 @@ struct HistorySheet: View {
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     private let calendar = Calendar.current
 
-    // Set of "day start" dates that have a completed workout, for fast lookup
-    private var workoutDays: Set<Date> {
-        Set(history.map { calendar.startOfDay(for: $0.dateCompleted) })
+    // "day start" date → routine name of the workout logged that day, for fast lookup
+    private var workoutDays: [Date: String] {
+        history.reduce(into: [:]) { result, entry in
+            result[calendar.startOfDay(for: entry.dateCompleted)] = entry.routineName
+        }
     }
 
     private var daysInMonth: [Date?] {
@@ -36,7 +38,7 @@ struct HistorySheet: View {
 
         return days
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -66,21 +68,29 @@ struct HistorySheet: View {
                     ForEach(Array(daysInMonth.enumerated()), id: \.offset) { _, date in
                         if let date {
                             let dayNumber = calendar.component(.day, from: date)
-                            let hasWorkout = workoutDays.contains(calendar.startOfDay(for: date))
+                            let routineName = workoutDays[calendar.startOfDay(for: date)]
 
-                            Text("\(dayNumber)")
-                                .font(.caption)
-                                .frame(width: 40, height: 40)
-                                .background(hasWorkout ? Color.blue : Color.clear)
-                                .clipShape(
-                                    UnevenRoundedRectangle(
-                                        topLeadingRadius: 12,
-                                        bottomLeadingRadius: 12,
-                                        bottomTrailingRadius: 12,
-                                        topTrailingRadius: 12
+                            VStack {
+                                Text("\(dayNumber)")
+                                    .font(.caption)
+                                    .frame(width: 40, height: 40)
+                                    .background(routineName != nil ? Theme.primary : Color.clear)
+                                    .clipShape(
+                                        UnevenRoundedRectangle(
+                                            topLeadingRadius: 12,
+                                            bottomLeadingRadius: 12,
+                                            bottomTrailingRadius: 12,
+                                            topTrailingRadius: 12
+                                        )
                                     )
-                                )
-                                
+
+                                if let routineName {
+                                    Text(routineName)
+                                        .font(.system(size: 8))
+                                        .lineLimit(1)
+                                }
+                            }
+
                         } else {
                             Color.clear
                                 .frame(width: 40, height: 40)
