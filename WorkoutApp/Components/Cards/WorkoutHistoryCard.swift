@@ -70,7 +70,7 @@ struct WorkoutHistoryCard: View {
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
         .fullScreenCover(isPresented: $showSpectateView) {
-            RoutineSpectateView(routine: workoutHistoryToRoutine(entry))
+            RoutineSpectateView(routine: workoutHistoryToRoutine(entry, appSettings))
         }
     }
 }

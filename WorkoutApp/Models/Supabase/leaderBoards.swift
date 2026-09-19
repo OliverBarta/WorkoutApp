@@ -28,7 +28,7 @@ func pullGlobalTop(exerciseName: String, startLoad: Int, endLoad: Int) async thr
     let response: [PersonalBestDTO] = try await supabase
         .from("personalbest")
         .select("user_id, exercise, weight")
-        .eq("exercise", value: exerciseName)
+        .eq("exercise", value: exerciseName.lowercased())
         .order("weight", ascending: false)
         .range(from: startLoad, to: endLoad)
         .execute()
@@ -68,7 +68,7 @@ func pullFollowingTop(exerciseName: String, startLoad: Int, endLoad: Int, follow
     let response: [PersonalBestDTO] = try await supabase
         .from("personalbest")
         .select("user_id, exercise, weight")
-        .eq("exercise", value: exerciseName)
+        .eq("exercise", value: exerciseName.lowercased())
         .order("weight", ascending: false)
         .range(from: startLoad, to: endLoad)
         .execute()

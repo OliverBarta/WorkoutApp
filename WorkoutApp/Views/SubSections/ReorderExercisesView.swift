@@ -21,19 +21,26 @@ struct ReorderExercisesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Reorder exercises")
-                .font(.headline)
-                .padding(.top)
 
             List {
-                ForEach(ordered) { exercise in
-                    Text(exercise.name)
-                        .font(.headline)
-                        .padding(.vertical, 4)
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+                Section {
+                    ForEach(ordered) { exercise in
+                        Text(exercise.name)
+                            .font(.headline)
+                            .padding(.vertical, 4)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }
+                    .onMove(perform: move)
+                    .onDelete(perform: remove)
+                    
+                } header : {
+                    Text("Reorder exercises")
+                        .font(.title)
+                        .foregroundStyle(Theme.oppositeBackground)
                 }
-                .onMove(perform: move)
+            
+                
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -50,6 +57,16 @@ struct ReorderExercisesView: View {
 
         // renumbering the whole list keeps order dense (0..<n), which also clears out any duplicate
         // order values left behind by earlier deletes
+        for (index, exercise) in ordered.enumerated() {
+            exercise.order = index
+        }
+    }
+    
+    private func remove(at offsets: IndexSet) {
+        let removed = offsets.map { ordered[$0] }
+        ordered.remove(atOffsets: offsets)
+        routine.exercises.removeAll { exercise in removed.contains { $0.id == exercise.id } }
+
         for (index, exercise) in ordered.enumerated() {
             exercise.order = index
         }

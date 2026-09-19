@@ -68,12 +68,6 @@ struct UneditableExerciseCard: View {
                         }
                     }
                     .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            exercise.removeSet(at: index)
-                        }
-                        .labelStyle(.titleOnly)
-                    }
                 }
             }
             .listStyle(.plain)

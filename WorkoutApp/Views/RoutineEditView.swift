@@ -67,7 +67,7 @@ struct RoutineEditView: View {
                             Image(systemName: "arrow.up.arrow.down")
                         }
                         .buttonStyle(.glass)
-                        .foregroundColor(Theme.oppositeBackground)
+                        .foregroundColor(sortedExercises.count < 2 ? Color.secondary.opacity(0.5) : Theme.oppositeBackground)
                         .disabled(sortedExercises.count < 2)
                         
                     }
@@ -120,7 +120,7 @@ struct RoutineEditView: View {
                             Image(systemName: "arrow.up.arrow.down")
                         }
                         .buttonStyle(.glass)
-                        .foregroundColor(Theme.oppositeBackground)
+                        .foregroundColor(sortedExercises.count < 2 ? Color.secondary.opacity(0.5) : Theme.oppositeBackground)
                         .disabled(sortedExercises.count < 2)
                         
                     }
@@ -142,6 +142,7 @@ struct RoutineEditView: View {
                     Text("Edit \(routine.name)")
                         .headerStyle()
                         .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.horizontal, 60)
                     
                     HStack {
                         Button {

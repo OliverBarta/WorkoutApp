@@ -42,7 +42,7 @@ struct personalBestToUpload: Encodable {
 func uploadPBToSupabase(userId: UUID, exerciseName: String, weight: Double) async throws {
     let PB = personalBestToUpload (
         user_id: userId,
-        exercise: exerciseName,
+        exercise: exerciseName.lowercased(),// all pbs are stored as lowercase locally and on the database.
         weight: weight
     )
 

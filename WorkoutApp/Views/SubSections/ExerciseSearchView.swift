@@ -36,15 +36,13 @@ struct ExerciseSearchView: View {
             $0.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
-    @State private var showUsedExercises = true
 
     var body: some View {
         ZStack {
             List {
                 if !filteredRecentExerciseNames.isEmpty {
                     Section {
-                        if showUsedExercises {
+                        if appSettings.showPreviousExercises {
                             ForEach(filteredRecentExerciseNames, id: \.self) { name in
                                 Button {
                                     var orderOfNewExercise = 0
@@ -99,9 +97,9 @@ struct ExerciseSearchView: View {
                             Spacer()
 
                             Button {
-                                showUsedExercises.toggle()
+                                appSettings.showPreviousExercises.toggle()
                             } label: {
-                                Text(showUsedExercises ? "Hide" : "Show")
+                                Text(appSettings.showPreviousExercises ? "Hide" : "Show")
                             }
                         }
                     }

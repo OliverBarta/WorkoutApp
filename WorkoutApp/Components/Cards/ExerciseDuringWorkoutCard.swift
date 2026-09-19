@@ -236,7 +236,7 @@ struct ExerciseDuringWorkoutCard: View {
     
     // calculates personalBest (the weight) and personalBestIndex (the set that personalBest was acheived)
     private func calculatePersonalBest() {
-        personalBest = (appSettings.personalBests[exercise.name] ?? 0)
+        personalBest = (appSettings.personalBests[exercise.name.lowercased()] ?? 0)
         personalBestIndex = -1
 
         for setIndex in exercise.completedSets {
@@ -263,14 +263,17 @@ struct ExerciseDuringWorkoutCard: View {
 
 
 #Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Routine.self, WorkOutLongSave.self, configurations: config)
+
     let exercise = Exercise(name: "Barbell bench press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 20, 30], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
     let routine = Routine(name: "Routine 1", exercises: [exercise])
     let session = WorkoutSession()
-    let _ = session.start(routine)
+    let _ = session.start(routine, container.mainContext, Date(), false)
 
     ExerciseDuringWorkoutCard(exercise: exercise)
         .environment(session)
         .environment(AppSettings())
         .environment(AuthManager())
-        .modelContainer(for: [Routine.self, Exercise.self], inMemory: true)
+        .modelContainer(container)
 }

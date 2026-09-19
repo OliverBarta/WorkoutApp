@@ -38,7 +38,7 @@ func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duratio
         var weights: [Double] = []
         var seconds: [Int] = []
 
-        var PB = (appSettings.personalBests[exercise.name] ?? 0)
+        var PB = (appSettings.personalBests[exercise.name.lowercased()] ?? 0)
         var PBIndex: Int = -1
         var PBFound = false
 
@@ -94,7 +94,7 @@ func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duratio
         }
         
         if PBFound {
-            appSettings.personalBests[exercise.name] = PB // local save
+            appSettings.personalBests[exercise.name.lowercased()] = PB // local save
             
             pbsToUpload.append(
                 PBToUpload(
@@ -137,6 +137,6 @@ func uploadRoutineToHistorySupabase(_ routine: Routine, routineId: UUID, duratio
     
     // goes through the pbs and uploads them
     for upload in pbsToUpload {
-        try await uploadPBToSupabase(userId: upload.userId, exerciseName: upload.exerciseName, weight: upload.weight) // database save
+        try await uploadPBToSupabase(userId: upload.userId, exerciseName: upload.exerciseName, weight: upload.weight) // database save. UploadPBToSupabase lowercases it don't worry
     }
 }

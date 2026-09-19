@@ -15,6 +15,8 @@ struct HomeView: View {
     @Environment(WorkoutSession.self) private var workoutSession
     @Environment(AppSettings.self) private var appSettings
     @Environment(AuthManager.self) private var authManager
+    
+    @State private var keyboardObserver = KeyboardObserver()
 
     @State private var showSettings = false
     @State private var showHistory = false
@@ -22,6 +24,35 @@ struct HomeView: View {
     @State private var showUserProfile = false
     
     @State private var errorMessage = ""
+    
+    @State private var workoutDays: [WorkoutHistoryEntry] = []
+    
+    @State private var daysWithWorkout: [Int] = []
+    
+    private func computeWorkoutDays() {
+        
+        workoutDays = []
+        print("Computing workout days")
+        
+        for dayInt in 0...6 {
+            let date = Calendar.current.date(byAdding: .day, value: -(6 - dayInt), to: Date()) ?? Date()
+            
+            var found = false
+            
+            for entry in history {
+                if Calendar.current.isDate(entry.dateCompleted, inSameDayAs: date) {
+                    workoutDays.append(entry)
+                    daysWithWorkout.append(dayInt)
+                    found = true
+                    break
+                }
+            }
+            if !found {
+                workoutDays.append(WorkoutHistoryEntry(routineName: "NULL", dateCompleted: Date(), durationSeconds: 999, exerciseSnapshots: []))
+            }
+        }
+        
+    }
 
     var body: some View {
         VStack {
@@ -34,7 +65,7 @@ struct HomeView: View {
                     
                     Button {
                         showHistory = true
-                    } label: { 
+                    } label: {
                         VStack(spacing: 12) {
                             Text("History")
                                 .font(.headline)
@@ -45,29 +76,32 @@ struct HomeView: View {
                                     let date = Calendar.current.date(byAdding: .day, value: -(6 - offset), to: Date()) ?? Date()
                                     let dayNumber = Calendar.current.component(.day, from: date)
                                     
-                                    let dayInWorkout = history.contains { historyItem in
-                                        Calendar.current.isDate(historyItem.dateCompleted, inSameDayAs: date)
-                                    }
-                                    
                                     ZStack {
                                         Color.clear
                                             .aspectRatio(1, contentMode: .fill)
                                         
-                                        Text("\(dayNumber)")
-                                            .font(.caption)
-                                            .foregroundColor(Theme.oppositeBackground)
+                                        VStack {
+                                            
+                                            Text("\(dayNumber)")
+                                                .font(.caption)
+                                                .foregroundColor(Theme.oppositeBackground)
+                                            
+                                            if daysWithWorkout.contains(offset) {
+                                                Text(workoutDays[offset].routineName)
+                                                    .font(.system(size: 8))
+                                                    .lineLimit(1)
+                                            }
+                                        }
                                     }
                                     .frame(maxWidth: .infinity)
-                                    .background(dayInWorkout ? Theme.primary : Color.clear)
+                                    .background(daysWithWorkout.contains(offset) ? Theme.primary : Color.clear)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
                                             .stroke(Color.gray, lineWidth: 1)
                                     )
                                 }
-                                
                             }
-
                         }
                         .padding()
                         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
@@ -94,6 +128,7 @@ struct HomeView: View {
                     }
                 }
             }
+            .onAppear{ computeWorkoutDays() }
             .scrollIndicators(.hidden)// hides the side scroll bar
             .frame(maxWidth: .infinity)
             .fullScreenCover(isPresented: $showSettings) {
@@ -110,6 +145,22 @@ struct HomeView: View {
             .fullScreenCover(isPresented: $showUserProfile) {
                 if let userId = authManager.currentUserId {
                     ProfileView(givenId: userId)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if keyboardObserver.isVisible {
+                    HStack {
+                        Spacer()
+                        Button {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        } label: {
+                            Image(systemName: "keyboard.chevron.compact.down")
+                                .fontWeight(.semibold)
+                                .padding()
+                                .glassEffect()
+                        }
+                        .padding()
+                    }
                 }
             }
             .overlay {
@@ -170,6 +221,7 @@ struct HomeView: View {
             }
         }
     }
+    
 }
 
 #Preview {
