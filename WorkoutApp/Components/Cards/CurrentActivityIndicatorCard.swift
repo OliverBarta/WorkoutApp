@@ -64,7 +64,11 @@ struct CurrentActivityIndicatorCard: View {
                         .font(.headline)
                     
                     Button {
+                        
+                        workoutSession.workoutRoutine?.exercises = workoutSession.originalRoutineExercises.map { $0.copy() }
+                        
                         workoutSession.end(modelContext)
+                        
                     } label: {
                         Text("End")
                             .frame(maxWidth: .infinity)
@@ -124,7 +128,7 @@ struct CurrentActivityIndicatorCard: View {
     let container = try! ModelContainer(for: Routine.self, WorkOutLongSave.self, configurations: config)
 
     let session = WorkoutSession()
-    let _ = session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7,8,9,10], weights: [3,3,3,3,3,3,3,3,3,3,3], restTime: 60)]), container.mainContext, Date(), false)
+    let _ = session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7,8,9,10], weights: [3,3,3,3,3,3,3,3,3,3,3], restTime: 60)], order: 0), container.mainContext, Date(), false, givenOriginalExercises: [], useGivenOriginalExercises: false)
 
     CurrentActivityIndicatorCard()
         .environment(session)

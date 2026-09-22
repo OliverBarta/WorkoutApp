@@ -77,6 +77,9 @@ class AppSettings {
     private static let exerciseSetupKey = "exerciseSetup"
     private static let lastRestTimeKey = "lastRestTime"
     private static let showPreviousExercisesKey = "showPreviousExercises"// whether or not the previous exercises in exercise search view are shown. This is toggled in exercise search view
+    
+    // un-used
+    private static let routineCycleKey = "routineCycle"
 
     var weightUnit: WeightUnit {
         didSet { UserDefaults.standard.set(weightUnit.rawValue, forKey: Self.weightUnitKey) }
@@ -154,6 +157,12 @@ class AppSettings {
     var showPreviousExercises: Bool {
         didSet { UserDefaults.standard.set(showPreviousExercises, forKey: Self.showPreviousExercisesKey)}
     }
+    
+    
+    // un-used
+    var routineCycle: [String] {
+        didSet { UserDefaults.standard.set(routineCycle, forKey: Self.routineCycleKey) }
+    }
 
     // runs everytime the phone opens the app
     init() {
@@ -175,7 +184,7 @@ class AppSettings {
         if let routineNumberStored = UserDefaults.standard.object(forKey: Self.routineNumberKey) as? Int {
             routineNumber = routineNumberStored
         } else {
-            routineNumber = 1
+            routineNumber = 0
         }
         
         if let addExerciseButtonsTopStored = UserDefaults.standard.object(forKey: Self.addExerciseButtonsTopKey) as? Bool {
@@ -249,6 +258,12 @@ class AppSettings {
             showPreviousExercises = true
         }
         
+        // un-used
+        if let storedRoutineCycle = UserDefaults.standard.stringArray(forKey: Self.routineCycleKey) {
+            routineCycle = storedRoutineCycle
+        } else {
+            routineCycle = []
+        }
     }
 
     // wraps a binding holding pounds so an input box reads and writes the unit the user picked

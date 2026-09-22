@@ -21,18 +21,20 @@ struct RoutineDuringWorkoutView: View {
 
     @Query(sort: \WorkoutHistoryEntry.dateCompleted, order: .reverse) private var history: [WorkoutHistoryEntry]
     
+    // query makes routines the same everywhere so just type this and the variable is the same
+    @Query(sort: \Routine.order) private var routines: [Routine]
+    
     @State private var keyboardObserver = KeyboardObserver()
     
     private var sortedExercises: [Exercise] {
         workoutSession.workoutRoutine?.exercises.sorted { $0.order < $1.order } ?? []
     }
     
-    @State private var showDoneDialog = false
+    @State private var showWorkoutSummary = false
     @State private var showingAddExerciseAlert = false
     @State private var newExerciseName = ""
     @State private var showExerciseSearch = false
     @State private var showReorder = false
-    @State private var showEndWorkoutVerifactionWindow = false
     @State private var showClearExercisesVerifactionWindow = false
     @State private var errorMessage: String = ""
     
@@ -148,13 +150,6 @@ struct RoutineDuringWorkoutView: View {
                         Image(systemName: "trash")
                     }
                     
-                    Button(role: .destructive) {
-                        showEndWorkoutVerifactionWindow = true
-                    } label : {
-                        Text("End workout without logging or updating")
-                        Image(systemName: "trash")
-                    }
-                    
                 }
                 .padding(.bottom, 100)
                 
@@ -177,7 +172,7 @@ struct RoutineDuringWorkoutView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 
                                 Button {
-                                    showDoneDialog = true
+                                    showWorkoutSummary = true
                                 } label: {
                                     Text("Finish")
                                         .padding(5)
@@ -276,124 +271,6 @@ struct RoutineDuringWorkoutView: View {
                     .presentationCornerRadius(12)
             }
         }
-        .sheet(isPresented: $showDoneDialog) {
-            VStack(spacing: 16) {
-                Text("Log and update \"\(routine.name)\"?")
-                    .font(.headline)
-                    .padding()
-                
-                Button {
-                    // saves routine to history and updates the routine
-
-                    if let workoutRoutine = workoutSession.workoutRoutine,
-                       let startDate = workoutSession.workoutStartDate {
-
-                        let duration = Int(Date().timeIntervalSince(startDate))
-                        let historySnapshot = history
-
-                        saveRoutineToHistory(workoutRoutine, duration, modelContext, appSettings.personalBests)
-
-                        // updates routine
-                        routine.exercises = workoutRoutine.exercises.map { $0.copyCompletedSetsToZero() }
-
-                        Task {
-                            do {
-                                try await uploadRoutineToSupabase(routine)
-                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration, appSettings: appSettings)
-                            } catch {
-                                print("History upload error: \(error)")
-                                errorMessage = "Upload failed: \(error)"
-                            }
-                        }
-
-                        Task {
-                            do {
-                                try await authManager.updateStreakAfterWorkout(history: historySnapshot)
-                            } catch {
-                                print("Streak update failed: \(error)")
-                                errorMessage = "Streak update failed: \(error)"
-                            }
-                        }
-                    }
-                    
-                    // ends workout
-                    workoutSession.end(modelContext)
-                    dismiss()
-                } label : {
-                    Text("Log and update")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glassProminent)
-                .tint(Color.green)
-                
-                Button {
-                    // saves routine to history
-
-                    // saves to local storage, uploads to supabase, then updates the streak.
-                    if let workoutRoutine = workoutSession.workoutRoutine,
-                       let startDate = workoutSession.workoutStartDate {
-
-                        let duration = Int(Date().timeIntervalSince(startDate))
-                        let historySnapshot = history
-                        
-                        saveRoutineToHistory(workoutRoutine, duration, modelContext, appSettings.personalBests)
-
-                        Task {
-                            do {
-                                try await uploadRoutineToHistorySupabase(workoutRoutine, routineId: routine.id, duration: duration, appSettings: appSettings)
-                            } catch {
-                                print("Routine upload error: \(error)")
-                                errorMessage = "Upload failed: \(error)"
-                            }
-                        }
-
-                        Task {
-                            do {
-                                try await authManager.updateStreakAfterWorkout(history: historySnapshot)
-                            } catch {
-                                print("Streak update failed: \(error)")
-                                errorMessage = "Streak update failed: \(error)"
-                            }
-                        }
-                    }
-                    
-                    // ends workout
-                    workoutSession.end(modelContext)
-                    dismiss()
-                } label : {
-                    Text("Log")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glassProminent)
-                .tint(Color.yellow)
-                
-                Button {
-                    
-                    workoutSession.end(modelContext)
-                    dismiss()
-                } label : {
-                    Text("Don't log or update")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glassProminent)
-                .tint(Color.red)
-                
-                Button {
-                    showDoneDialog = false
-                } label : {
-                    Text("Cancel")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glass)
-                
-            }
-            .padding()
-            .presentationDetents([.height(390)])
-        }
         .alert("Enter a name for your new exercise", isPresented: $showingAddExerciseAlert) {
             TextField("Exercise Name", text: $newExerciseName)
             
@@ -471,37 +348,6 @@ struct RoutineDuringWorkoutView: View {
             .padding()
             .presentationDetents([.height(320)])
         }
-        .sheet(isPresented: $showEndWorkoutVerifactionWindow) {
-            VStack(spacing: 16) {
-                Text("End workout without logging or updating?")
-                    .padding()
-                    .font(.headline)
-                
-                Button {
-                    workoutSession.end(modelContext)
-                    dismiss()
-                } label: {
-                    Text("End")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glassProminent)
-                .tint(Color.red)
-                
-                Button {
-                    showEndWorkoutVerifactionWindow = false
-                } label: {
-                    Text("Cancel")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.glass)
-                
-            }
-            .padding()
-            .presentationDetents([.height(230)])
-            
-        }
         .sheet(isPresented: $showClearExercisesVerifactionWindow) {
             VStack(spacing: 16) {
                 Text("Clear all exercises?")
@@ -538,6 +384,9 @@ struct RoutineDuringWorkoutView: View {
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
+        .fullScreenCover(isPresented: $showWorkoutSummary) {
+            WorkoutEndSummaryView(routine: routine)
+        }
         // the personal best celebration
         .overlay {
             ZStack {
@@ -557,6 +406,7 @@ struct RoutineDuringWorkoutView: View {
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: workoutSession.newPersonalBest)
         }
+        
     }
 
     private func ChangeAllRestTimes() {
@@ -573,6 +423,17 @@ struct RoutineDuringWorkoutView: View {
         
         errorMessage = "All rest times set to \(SecondsFormatted(newRestTime))"
     }
+    
+    private func MoveThisRoutineToTheEnd() {
+        for r in routines {
+            if r.order > routine.order {
+                r.order -= 1
+            }
+        }
+        
+        routine.order = routines.count-1
+        
+    }
 }
 
 
@@ -581,9 +442,9 @@ struct RoutineDuringWorkoutView: View {
     let container = try! ModelContainer(for: Routine.self, WorkoutHistoryEntry.self, WorkOutLongSave.self, configurations: config)
 
     let session = WorkoutSession()
-    let _ = session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0),Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 1)]), container.mainContext, Date(), false)
+    let _ = session.start(Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0),Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 1)], order: 0), container.mainContext, Date(), false, givenOriginalExercises: [], useGivenOriginalExercises: false)
 
-    RoutineDuringWorkoutView(routine: Routine(name: "Routine 1"))
+    RoutineDuringWorkoutView(routine: Routine(name: "Routine 1", order: 0))
         .environment(session)
         .environment(AuthManager())
         .environment(AppSettings())

@@ -180,6 +180,6 @@ struct ExerciseSearchView: View {
 }
 
 #Preview {
-    ExerciseSearchView(routine: Routine(name: "Routine 1"))
+    ExerciseSearchView(routine: Routine(name: "Routine 1", order: 0))
         .environment(AppSettings())
 }

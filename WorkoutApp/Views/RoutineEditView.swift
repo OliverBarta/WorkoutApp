@@ -149,7 +149,7 @@ struct RoutineEditView: View {
                             
                             Task {
                                 do {
-                                    try await uploadRoutineToSupabase(routine)
+                                    try await uploadRoutineToSupabase(routine, routineId: routine.id)
                                 } catch {
                                     errorMessage = "Upload failed: \(error)"
                                     print("Upload failed: \(error)")
@@ -247,7 +247,7 @@ struct RoutineEditView: View {
 }
 
 #Preview {
-    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)]))
+    RoutineEditView(routine: Routine(name: "Routine 1", exercises: [Exercise(name: "Bench Press", reps: [3,3,3,3,3,3,3,3], seconds: [0,0,0,0,0,0,0,0], completedSets: [1,2,3,4,5,6,7], weights: [3,3,3,3,3,3,3,3], restTime: 10, repsColumn: true, weightColumn: true, secsColumn: false, order: 0)], order: 0))
         .environment(AppSettings())
         .environment(AuthManager())
 }

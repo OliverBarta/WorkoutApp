@@ -102,7 +102,7 @@ func saveRoutineToHistory(_ workoutRoutine: Routine,_ durationSeconds: Int,_ mod
 
 // converts a workoutHistoryEntry into type Routine
 func workoutHistoryToRoutine(_ workoutHistoryEntry: WorkoutHistoryEntry, _ appSettings: AppSettings) -> Routine {
-    let finalRoutine = Routine(name: workoutHistoryEntry.routineName)
+    let finalRoutine = Routine(name: workoutHistoryEntry.routineName, order: 0)
     
     var orderTracked = -1
     

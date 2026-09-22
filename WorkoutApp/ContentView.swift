@@ -15,8 +15,8 @@ struct ContentView: View {
 
     @Environment(AppSettings.self) private var appSettings
     
-    // query makes workoutLongSave the same everywhere so just type this and the variable is the same
-    @Query private var workoutLongSave: [WorkOutLongSave]
+    // should be = [] unless a workout is currently happening then it will = [WorkOutLongSave]
+    @Query(sort: \WorkOutLongSave.startDate) private var workoutLongSave: [WorkOutLongSave]
     
     @State private var askToContinuePrevious: Bool = false
 
@@ -51,15 +51,17 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $workoutSession.showActiveWorkout) {
-            if let originalRoutine = workoutSession.originalRoutine {
+            if let workoutRoutine = workoutSession.workoutRoutine {
                 ZStack {
-                    RoutineDuringWorkoutView(routine: originalRoutine)
+                    RoutineDuringWorkoutView(routine: workoutRoutine)
                 }
                 .environment(workoutSession)
             }
         }
         .fullScreenCover(isPresented: $askToContinuePrevious) {
-            ContinueWhereYouLeftOff(leftOff: workoutLongSave[0])
+            if let first = workoutLongSave.first {
+                ContinueWhereYouLeftOff(leftOff: first)
+            }
         }
         .task {
             askToContinuePrevious = checkWorkOutLongSave()

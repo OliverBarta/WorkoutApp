@@ -10,7 +10,8 @@ import Foundation
 import Supabase
 
 // uploads a routine to supabase, if that routine already exists it updates it
-func uploadRoutineToSupabase(_ routine: Routine) async throws {
+// takes routineId because sometimes the routine passed in has all the right variables except the id, because its a copy of the actual routine
+func uploadRoutineToSupabase(_ routine: Routine, routineId: UUID) async throws {
     guard let userId = supabase.auth.currentSession?.user.id else {
         throw NSError(domain: "Auth", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])
     }
@@ -30,7 +31,7 @@ func uploadRoutineToSupabase(_ routine: Routine) async throws {
     }
 
     let dto = RoutineDTO(
-        id: routine.id,
+        id: routineId,
         user_id: userId,
         name: routine.name,
         exercises: exerciseDTOs
@@ -77,7 +78,7 @@ func copyRoutineToSupabase(_ routine: Routine) async throws -> Routine {
         .upsert(dto)
         .execute()
 
-    let newRoutine = Routine(id: newId, name: routine.name)
+    let newRoutine = Routine(id: newId, name: routine.name, order: routine.order)
     newRoutine.exercises = routine.exercises.map {
         Exercise(
             name: $0.name,
