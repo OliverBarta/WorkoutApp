@@ -14,8 +14,7 @@ struct RoutineSelectorView: View {
     @Environment(AppSettings.self) private var appSettings
     
     // query makes routines the same everywhere so just type this and the variable is the same
-    // sorted by name so the cards are always in the same order, an unsorted query gives no order guarantee
-    @Query(sort: \Routine.name) private var routines: [Routine]
+    @Query(sort: \Routine.order) private var routines: [Routine]
 
     // the spring used when a routine card is added or removed
     private static let cardAnimation: Animation = .spring(response: 0.35, dampingFraction: 0.8)
@@ -28,11 +27,16 @@ struct RoutineSelectorView: View {
                 Rectangle()
                     .padding(.top, 35)
                     .opacity(0)
-
+                
+                
                 Button {
-                    let newRoutine = Routine(name: "Routine \(appSettings.routineNumber)")
+                    let newRoutine = Routine(name: "Routine \(appSettings.routineNumber)", order: 0)
                     
                     appSettings.routineNumber += 1
+                    
+                    for r in routines {
+                        r.order += 1
+                    }
                     
                     withAnimation(Self.cardAnimation) {
                         modelContext.insert(newRoutine)
@@ -99,4 +103,5 @@ struct RoutineSelectorView: View {
     RoutineSelectorView()
         .modelContainer(for: Routine.self, inMemory: true)
         .environment(WorkoutSession())
+        .environment(AppSettings())
 }

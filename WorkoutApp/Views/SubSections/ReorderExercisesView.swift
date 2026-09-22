@@ -80,5 +80,5 @@ struct ReorderExercisesView: View {
         Exercise(name: name, reps: [8], seconds: [0], completedSets: [], weights: [135], restTime: 60, order: index)
     }
 
-    ReorderExercisesView(routine: Routine(name: "Push day", exercises: exercises))
+    ReorderExercisesView(routine: Routine(name: "Push day", exercises: exercises, order: 0))
 }

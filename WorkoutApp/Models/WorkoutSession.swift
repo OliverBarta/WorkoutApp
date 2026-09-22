@@ -23,7 +23,7 @@ class WorkoutSession {
     var workoutRoutine: Routine?
     
     // the unedited routine
-    var originalRoutine: Routine?
+    var originalRoutineExercises: [Exercise] = []
     
     // if we are showing the RoutineDuringWorkoutView or not
     var showActiveWorkout: Bool = false
@@ -55,15 +55,20 @@ class WorkoutSession {
         workoutRoutine != nil
     }
 
-    func start(_ routine: Routine,_ context: ModelContext,_ givenStart: Date,_ workoutHasPreviousStartDate: Bool) {
-        let copy = routine.copy()
+    func start(_ routine: Routine,_ context: ModelContext,_ givenStart: Date,_ workoutHasPreviousStartDate: Bool, givenOriginalExercises: [Exercise], useGivenOriginalExercises: Bool) {
         var startDate = Date()
         if workoutHasPreviousStartDate {
             startDate = givenStart
         }
         
-        workoutRoutine = copy// deep copy routine
-        originalRoutine = routine// shallow copy routine
+        workoutRoutine = routine
+        
+        if useGivenOriginalExercises {
+            originalRoutineExercises = givenOriginalExercises.map { $0.copy() }// these are only given in the case of a start from a crash (WorkOutSaveLong)
+        } else {
+            originalRoutineExercises = routine.exercises.map { $0.copy() }
+        }
+        
         workoutStartDate = startDate
         showActiveWorkout = true
         
@@ -72,8 +77,8 @@ class WorkoutSession {
             context.delete(stale)
         }
 
-        context.insert(WorkOutLongSave(startDate: startDate, routine: copy))
-        try? context.save() // explicit: autosave may not have run when a crash hits
+        context.insert(WorkOutLongSave(startDate: startDate, routine: routine, originalExercises: originalRoutineExercises))
+        try? context.save() // autosave may not have run when a crash hits
     }
     
     func end(_ context: ModelContext) {
@@ -82,13 +87,14 @@ class WorkoutSession {
             context.delete(stale)
         }
         
-        
         workoutRoutine = nil
-        originalRoutine = nil
+        originalRoutineExercises = []
         workoutStartDate = nil
         showActiveWorkout = false
         newPersonalBest = nil
         stopRestTimer()
+        
+        try? context.save() // autosave may not have run when a crash hits
     }
     
     // removes the exercise you gave from the workout routine

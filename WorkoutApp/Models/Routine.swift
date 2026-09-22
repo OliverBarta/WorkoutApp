@@ -79,7 +79,8 @@ extension Routine {
     func copy() -> Routine {
         Routine(
             name: name,
-            exercises: exercises.map { $0.copy() }
+            exercises: exercises.map { $0.copy() },
+            order: order
         )
     }
 }
@@ -119,13 +120,15 @@ class Exercise {
 class Routine {
     var id: UUID
     var name: String
-    
+    var order: Int
+
     @Relationship(deleteRule: .cascade, inverse: \Exercise.routine)
     var exercises: [Exercise]
 
-    init(id: UUID = UUID(), name: String, exercises: [Exercise] = []) {
+    init(id: UUID = UUID(), name: String, exercises: [Exercise] = [], order: Int) {
         self.id = id
         self.name = name
         self.exercises = exercises
+        self.order = order
     }
 }

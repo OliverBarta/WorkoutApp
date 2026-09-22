@@ -48,7 +48,6 @@ struct ContinueWhereYouLeftOff: View {
                 exerciseList
             }
             .padding(.horizontal, Theme.padding)
-            .padding(.top, 40)
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
@@ -60,12 +59,6 @@ struct ContinueWhereYouLeftOff: View {
 
     private var header: some View {
         VStack(spacing: 10) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(Theme.primary)
-                .frame(width: 72, height: 72)
-                .glassEffect(in: Circle())
-                .padding(.bottom, 4)
 
             Text("Continue where you left off?")
                 .font(.title2.bold())
@@ -192,8 +185,9 @@ struct ContinueWhereYouLeftOff: View {
     private var actionButtons: some View {
         VStack(spacing: 10) {
             Button {
-                workoutSession.start(leftOff.routine, modelContext, leftOff.startDate, true)
                 dismiss()
+                
+                workoutSession.start(leftOff.routine, modelContext, leftOff.startDate, true, givenOriginalExercises: leftOff.originalExercises, useGivenOriginalExercises: true)
 
             } label : {
                 Text("Continue")
@@ -204,14 +198,18 @@ struct ContinueWhereYouLeftOff: View {
             .buttonStyle(.glassProminent)
 
             Button {
+                // copies the original exercises back onto the original routine, like the workout never happend
+                leftOff.routine.exercises = leftOff.originalExercises.map { $0.copy() }
+                
                 // Clear workoutlongsave
                 for stale in (try? modelContext.fetch(FetchDescriptor<WorkOutLongSave>())) ?? [] {
                     modelContext.delete(stale)
                 }
+                
                 dismiss()
 
             } label : {
-                Text("Close")
+                Text("Don't Continue")
                     .frame(maxWidth: .infinity)
                     .padding()
             }
@@ -246,11 +244,12 @@ struct ContinueWhereYouLeftOff: View {
         Exercise(name: "Weighted Dips", reps: [10, 8, 8], seconds: [0, 0, 0], completedSets: [], weights: [0, 0, 0], restTime: 90, repsColumn: true, weightColumn: false, secsColumn: false, order: 7),
         Exercise(name: "Plank", reps: [1, 1], seconds: [45, 45], completedSets: [], weights: [0, 0], restTime: 45, repsColumn: false, weightColumn: false, secsColumn: true, order: 8),
         Exercise(name: "Treadmill Cooldown Walk", reps: [1], seconds: [600], completedSets: [], weights: [0], restTime: 0, repsColumn: false, weightColumn: false, secsColumn: true, order: 9)
-    ])
+    ], order: 0)
 
     let sampleSave = WorkOutLongSave(
         startDate: .now.addingTimeInterval(-1200), // started 20 min ago
-        routine: sampleRoutine
+        routine: sampleRoutine,
+        originalExercises: sampleRoutine.exercises.map { $0.copy() }
     )
 
     ContinueWhereYouLeftOff(leftOff: sampleSave)

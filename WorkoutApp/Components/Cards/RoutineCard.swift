@@ -19,11 +19,15 @@ struct RoutineCard: View {
     // environemnt variable for the current workout routine
     @Environment(WorkoutSession.self) private var workoutSession
     
+    @Query(sort: \Routine.order) private var routines: [Routine]
+    
     // environment variable for the user login
     @Environment(AuthManager.self) private var authManager
     
     @State private var showEditView = false
     @State private var showDoneDialog = false
+    
+    @State private var errorMessage = ""
     
     // a string of the exercises in the routine
     var exerciseString: String {
@@ -56,7 +60,11 @@ struct RoutineCard: View {
                 
                 if deletableCard {
                     Button {
-                        showDoneDialog = true
+                        if workoutSession.isActive && workoutSession.workoutRoutine == routine {
+                            errorMessage = "Cannot delete active workouts"
+                        } else {
+                            showDoneDialog = true
+                        }
                     } label: {
                         Image(systemName: "trash")
                             .font(.title2)
@@ -64,6 +72,8 @@ struct RoutineCard: View {
                             .symbolRenderingMode(.hierarchical)
                     }
                     .buttonStyle(.plain)
+                    .opacity((workoutSession.isActive && workoutSession.workoutRoutine == routine) ? 0.5 : 1)
+                    
                 }
                 
             }
@@ -74,21 +84,32 @@ struct RoutineCard: View {
             
             VStack(spacing: 12) {
                 Button {
-                    showEditView = true
+                    if workoutSession.isActive && workoutSession.workoutRoutine == routine {
+                        errorMessage = "Cannot edit active workouts"
+                    } else {
+                        showEditView = true
+                    }
                 } label: {
                     Text("Edit Routine")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.glass)
+                .opacity((workoutSession.isActive && workoutSession.workoutRoutine == routine) ? 0.5 : 1)
                 
                 Button {
-                    workoutSession.start(routine, modelContext, Date(), false)
+                    if workoutSession.isActive {
+                        errorMessage = "End current workout to start a new one"
+                    } else {
+                        workoutSession.start(routine, modelContext, Date(), false, givenOriginalExercises: [], useGivenOriginalExercises: false)// the given original exercises is only used for WorkOutLongSave
+                    }
                     
                 } label: {
                     Text("Start Routine")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.glassProminent)
+                .opacity(workoutSession.isActive ? 0.5 : 1)
+                
                 
             }
         }
@@ -108,12 +129,22 @@ struct RoutineCard: View {
                     Task {
                         do {
                             try await deleteRoutineFromSupabase(routine)
+                            
                         } catch {
                             print("Supabase delete failed: \(error)")
                         }
                     }
+                    
+                    let routineOrder: Int = routine.order
+                    
                     // deletes routine from the phones local storage
                     modelContext.delete(routine)
+                    
+                    for r in routines {
+                        if r.order > routineOrder {
+                            r.order -= 1
+                        }
+                    }
                 } label: {
                     Text("Delete")
                         .frame(maxWidth: .infinity)
@@ -136,11 +167,15 @@ struct RoutineCard: View {
             
         }
         .glassEffect(in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
+            TopPopUp(message: $errorMessage)
+                .padding(.top)
+        }
     }
 }
 
 #Preview {
-    RoutineCard(routine: Routine(name: "Routine 1"), deletableCard: true)
+    RoutineCard(routine: Routine(name: "Routine 1", order: 0), deletableCard: true)
         .environment(WorkoutSession())
         .environment(AuthManager())
 }

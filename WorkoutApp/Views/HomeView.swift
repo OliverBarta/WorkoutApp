@@ -10,7 +10,8 @@ import SwiftData
 struct HomeView: View {
     @Query(sort: \WorkoutHistoryEntry.dateCompleted, order: .reverse) private var history: [WorkoutHistoryEntry]
     
-    @Query private var routines: [Routine]
+    // query makes routines the same everywhere so just type this and the variable is the same
+    @Query(sort: \Routine.order) private var routines: [Routine]
     
     @Environment(WorkoutSession.self) private var workoutSession
     @Environment(AppSettings.self) private var appSettings

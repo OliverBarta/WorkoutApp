@@ -267,9 +267,9 @@ struct ExerciseDuringWorkoutCard: View {
     let container = try! ModelContainer(for: Routine.self, WorkOutLongSave.self, configurations: config)
 
     let exercise = Exercise(name: "Barbell bench press", reps: [3,3,3], seconds: [0,0,0], completedSets: [], weights: [10, 20, 30], restTime: 60, repsColumn: true, weightColumn: true, secsColumn: true, order: 0)
-    let routine = Routine(name: "Routine 1", exercises: [exercise])
+    let routine = Routine(name: "Routine 1", exercises: [exercise], order: 0)
     let session = WorkoutSession()
-    let _ = session.start(routine, container.mainContext, Date(), false)
+    let _ = session.start(routine, container.mainContext, Date(), false, givenOriginalExercises: [], useGivenOriginalExercises: false)
 
     ExerciseDuringWorkoutCard(exercise: exercise)
         .environment(session)

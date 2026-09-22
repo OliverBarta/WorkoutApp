@@ -23,7 +23,7 @@ struct CelebrationAlert: View {
                 .allowsHitTesting(false)
             
             VStack(spacing: 12) {
-                if weight >= 225 && exerciseName == "Barbell bench press" {
+                if weight >= 225 && exerciseName.lowercased().contains("bench press") {
                     Text("YOUR THE GOAT! New Weight PB")
                         .font(.headline)
                 } else {

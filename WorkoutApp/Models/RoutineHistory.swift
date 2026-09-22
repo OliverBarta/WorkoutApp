@@ -71,7 +71,7 @@ func exercisesToRoutineHistory(_ exercises: [ExerciseHistoryDTO], name: String) 
 // the routine gets a fresh id rather than reusing the history id, since the two live in
 // separate tables. personalBestIndex has no equivalent on Exercise so it is dropped
 func routineHistoryToRoutine(_ routineHistory: RoutineHistory) -> Routine {
-    let finalRoutine = Routine(name: routineHistory.name)
+    let finalRoutine = Routine(name: routineHistory.name, order: 0)
 
     finalRoutine.exercises = routineHistory.exercises.map { exerciseHistory in
         let exercise = Exercise(

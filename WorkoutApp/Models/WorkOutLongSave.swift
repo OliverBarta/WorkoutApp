@@ -20,9 +20,13 @@ class WorkOutLongSave {
     var startDate: Date
     var routine: Routine
     
-    init (startDate: Date, routine: Routine) {
+    @Relationship(deleteRule: .cascade)
+    var originalExercises: [Exercise]
+    
+    init (startDate: Date, routine: Routine, originalExercises: [Exercise]) {
         self.startDate = startDate
         self.routine = routine
+        self.originalExercises = originalExercises
     }
 }
 

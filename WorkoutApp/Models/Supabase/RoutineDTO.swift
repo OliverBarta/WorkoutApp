@@ -44,7 +44,7 @@ struct RoutineDTO: Codable {
 
 extension RoutineDTO {
     func toModel() -> Routine {
-        let routine = Routine(id: id, name: name)
+        let routine = Routine(id: id, name: name, order: 0)
         routine.exercises = exercises.map {
             Exercise(
                 name: $0.name,
